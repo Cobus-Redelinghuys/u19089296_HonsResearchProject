@@ -1,0 +1,11 @@
+{
+    "populationSize" : 100,
+    "numGenerations" : 100,
+    "selectionSize" : 10,
+    "reproductionProp" : 0.5,
+    "crossoverProp" : 0.7,
+    "mutationProp" : 0.5,
+    "crossOverType" : "OnePointCrossOver",
+    "mutationType" : "BitWisInversion",
+    "seed" : 0
+}
