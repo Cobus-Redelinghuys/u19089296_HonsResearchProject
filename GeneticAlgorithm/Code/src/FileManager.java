@@ -1,7 +1,7 @@
 import java.io.FileReader;
 import java.util.Random;
-import java.lang.reflect.TypeVariable;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -137,23 +137,49 @@ class GeneticAlgorithmConfig{
     }
 }
 
+@SuppressWarnings("rawtypes")
 class ChromosomeConfig{
-
+    public static final GeneConfig[] geneConfigs; 
+    static{
+        JSONParser jsonParser = new JSONParser();
+        Object obj = null;
+        try{
+            obj = jsonParser.parse(new FileReader("ChromosomeConfig.json"));
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        JSONObject jsonObject = (JSONObject)obj;
+        JSONArray geneArray = (JSONArray)jsonObject.get("Genes");
+        GeneConfig[] tempArr = new GeneConfig[geneArray.size()];
+        for(int i=0; i < tempArr.length; i++){
+            JSONObject jObject = (JSONObject)geneArray.get(i);
+            tempArr[i] = GeneConfig.getGeneConfig(jObject);
+        }
+        geneConfigs = tempArr;
+    }
 }
 
 @SuppressWarnings("rawtypes")
-class GeneConfig{
-    public final GeneDataType geneDataType;
-    private final Object maxValue;
-    private final Object minValue;
-    private final Object[] invalidValues;
-    private final Class dataType;
+class GeneConfig<T>{
+    private final GeneDataType geneDataType;
+    private final T maxValue;
+    private final T minValue;
+    public final T[] invalidValues;
+    public final Class dataType;
+
+    public T maxValue(){
+        return maxValue;
+    }
+
+    public T minValue(){
+        return minValue;
+    }
     
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("unchecked")
     public GeneConfig(JSONObject jsonObject){
         Object res = null;
         try{
-            String line = (String)jsonObject.get("DataType");
+            String line = (String)jsonObject.get("geneDataType");
             for(GeneDataType geneDT: GeneDataType.values()){
                 if(geneDT.name().equals(line))
                     res = geneDT;
@@ -181,20 +207,71 @@ class GeneConfig{
                 dataType = Boolean.class;
                 break;
 
-            case Double:
+            default:
                 dataType = Double.class;
                 break;
-            
-            default:
-                break;
         }
+
+        try{
+            res = (T)jsonObject.get("maxValue");
+        } catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            maxValue = (T)res;
+        }
+
+        try{
+            res = (T)jsonObject.get("minValue");
+        } catch(Exception e){
+            e.printStackTrace();
+        }finally{
+            minValue = (T)res;
+        }
+
+        Object[] resArr = null;
+        try{
+            JSONArray temp = ((JSONArray)jsonObject.get("invalidValues"));
+            resArr = new Object[temp.size()];
+            for(int i=0; i < resArr.length; i++) {
+                resArr[i] = temp.get(i);
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        } finally{
+            invalidValues = (T[])resArr;
+        }
+
     }
 
-    public <T> T getMaxValue(){
-        return (T)maxValue;
 
-    public void test(){
-        Double v = getMaxValue();
+    static GeneConfig getGeneConfig(JSONObject jsonObject){
+        GeneDataType res = null;
+        try{
+            String line = (String)jsonObject.get("geneDataType");
+            for(GeneDataType geneDT: GeneDataType.values()){
+                if(geneDT.name().equals(line))
+                    res = geneDT;
+            }
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        switch (res) {
+            case Integer:
+                return new GeneConfig<Integer>(jsonObject);
+        
+            case Character:
+                return new GeneConfig<Character>(jsonObject);
+                
+            case Float:
+                return new GeneConfig<Float>(jsonObject);
+
+            case Boolean:
+                return new GeneConfig<Boolean>(jsonObject);
+
+            default:
+                return new GeneConfig<Double>(jsonObject);
+        }
     }
 
 }
