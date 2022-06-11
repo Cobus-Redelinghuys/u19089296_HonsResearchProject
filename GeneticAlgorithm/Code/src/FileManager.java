@@ -1,4 +1,5 @@
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.Random;
 
 import org.json.simple.JSONArray;
@@ -6,7 +7,31 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class FileManager {
-    
+    @SuppressWarnings("unchecked")
+    static void writeGeneticAlgorithmConfigFile(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("populationSize", 100);
+        jsonObject.put("numGenerations", 100);
+        jsonObject.put("selectionSize", 10);
+        jsonObject.put("reproductionProp", 0.5);
+        jsonObject.put("crossoverProp", 0.5);
+        jsonObject.put("mutationProp", 0.5);
+        jsonObject.put("crossOverType", "OnePointCrossOver");
+        jsonObject.put("mutationType", "BitWisInversion");
+        jsonObject.put("seed", 0);
+
+        try(FileWriter file = new FileWriter("GeneticAlgorithmConfig.json")){
+            String jsonString = jsonObject.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    static void writeChromosomeConfigFile(){
+
+    }
 }
 
 
