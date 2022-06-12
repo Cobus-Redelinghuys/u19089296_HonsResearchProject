@@ -1,12 +1,12 @@
 {
-    "Genes" : [
+    "genes":[
         {
-            "geneDataType" : "Double",
-            "maxValue" : 10.0,
-            "minValue" : -10.0,
-            "invalidValues" : [
-                5.0, 10.0
-            ]
+            "minValue":-10.0,
+            "geneDataType":"Double",
+            "maxValue":10.0,
+            "invalidValues":[
+                5.0,
+                10.0]
         }
     ]
 }

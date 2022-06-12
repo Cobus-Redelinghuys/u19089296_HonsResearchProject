@@ -29,8 +29,28 @@ public class FileManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     static void writeChromosomeConfigFile(){
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("geneDataType", "Double");
+        jsonObject.put("maxValue", 10.0);
+        jsonObject.put("minValue", -10.0);
+        JSONArray invalidValues = new JSONArray();
+        invalidValues.add(5.0);
+        invalidValues.add(10.0);
+        jsonObject.put("invalidValues", invalidValues);
+        jsonArray.add(jsonObject);
 
+        try(FileWriter file = new FileWriter("ChromosomeConfig.json")){
+            JSONObject tempObj = new JSONObject();
+            tempObj.put("genes", jsonArray);
+            String jsonString = tempObj.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
 
@@ -174,7 +194,7 @@ class ChromosomeConfig{
             e.printStackTrace();
         }
         JSONObject jsonObject = (JSONObject)obj;
-        JSONArray geneArray = (JSONArray)jsonObject.get("Genes");
+        JSONArray geneArray = (JSONArray)jsonObject.get("genes");
         GeneConfig[] tempArr = new GeneConfig[geneArray.size()];
         for(int i=0; i < tempArr.length; i++){
             JSONObject jObject = (JSONObject)geneArray.get(i);
@@ -299,6 +319,14 @@ class GeneConfig<T>{
         }
     }
 
+    public T convertFromBin(String str){
+        return geneDataType.convertFromBin(str);
+    }
+
+    public int numBits(){
+        return geneDataType.numBits();
+    }
+
 }
 
 enum CrossOverType{
@@ -315,10 +343,68 @@ enum MutationType{
     RandomSelection
 }
 
+@SuppressWarnings("unchecked")
 enum GeneDataType{
-    Integer,
-    Character,
-    Float,
-    Boolean,
-    Double
+    Integer{
+        @Override
+        public Integer convertFromBin(String str) {
+            return java.lang.Integer.parseInt(str);
+        }
+
+        @Override
+        public int numBits() {
+            return 32;
+        }
+    },
+    Character{
+        @Override
+        public Character convertFromBin(String str) {
+            return (char)java.lang.Integer.parseInt(str);
+        }
+
+        @Override
+        public int numBits() {
+            return 16;
+        }
+    },
+    Float{
+        @Override
+        public Float convertFromBin(String str) {
+            return java.lang.Float.intBitsToFloat(java.lang.Integer.parseInt(str));
+        }
+
+        @Override
+        public int numBits() {
+            return 32;
+        }
+    },
+    Boolean{
+        @Override
+        public Boolean convertFromBin(String str) {
+            if(str.equals("1"))
+                return true;
+            else 
+                return false;
+        }
+
+        @Override
+        public int numBits() {
+            return 1;
+        }
+    },
+    Double{
+        @Override
+        public Double convertFromBin(String str) {
+            return java.lang.Double.longBitsToDouble(Long.valueOf(str,2));
+        }
+
+        @Override
+        public int numBits() {
+            return 64;
+        }
+    };
+
+    public abstract <T> T convertFromBin(String str);
+
+    public abstract int numBits();
 }
