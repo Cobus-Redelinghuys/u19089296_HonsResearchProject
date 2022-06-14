@@ -169,16 +169,28 @@ class GeneticAlgorithmConfig{
         random = new Random(seed);
     }
 
-    public static int nextInt(int bound){
+    public static Integer nextInt(Integer bound){
         return random.nextInt(bound);
     }
 
-    public static boolean nextBoolean(){
+    public static Boolean nextBoolean(){
         return random.nextBoolean();
     }
 
-    public static double nextDouble(double bound){
+    public static Double nextDouble(Double bound){
         return random.nextDouble(bound);
+    }
+
+    public static Float nextFloat(Float bound){
+        return random.nextFloat(bound);
+    }
+
+    public static Character nextCharacter(Integer bound){
+        return (char)random.nextInt(bound);
+    }
+
+    public static <T> Object nextRandVal(T max, T min, GeneDataType geneDataType){
+        return geneDataType.randVal(max, min);
     }
 }
 
@@ -201,6 +213,10 @@ class ChromosomeConfig{
             tempArr[i] = GeneConfig.getGeneConfig(jObject);
         }
         geneConfigs = tempArr;
+    }
+
+    public static Chromosome generatChromosome(){
+        return new Chromosome();
     }
 }
 
@@ -327,6 +343,10 @@ class GeneConfig<T>{
         return geneDataType.numBits();
     }
 
+    public String generateGene(){
+        return geneDataType.convertToBinary(geneDataType.randVal(maxValue, minValue));
+    }
+
 }
 
 enum CrossOverType{
@@ -348,23 +368,52 @@ enum GeneDataType{
     Integer{
         @Override
         public Integer convertFromBin(String str) {
-            return java.lang.Integer.parseInt(str);
+            long l = Long.parseLong(str, 2);
+            return (int)l;
         }
 
         @Override
         public int numBits() {
             return 32;
         }
+
+        @Override
+        public Integer randVal(Object max, Object min) {
+            return GeneticAlgorithmConfig.nextInt((Integer)max - (Integer)min) + (Integer)min;
+        }
+
+        @Override
+        public String convertToBinary(Object val) {
+            return java.lang.Integer.toBinaryString((java.lang.Integer)val);
+        }
     },
     Character{
         @Override
         public Character convertFromBin(String str) {
-            return (char)java.lang.Integer.parseInt(str);
+            int val = Integer.convertFromBin(str);
+            return (char)val; 
         }
 
         @Override
         public int numBits() {
             return 16;
+        }
+
+        @Override
+        public Character randVal(Object max, Object min) {
+            int maxVal = (char)max;
+            int minVal = (char)min;
+            return (char)(GeneticAlgorithmConfig.nextCharacter(maxVal-minVal)+minVal);
+        }
+
+        @Override
+        public String convertToBinary(Object val) {
+            int v = (char)val;
+            String temp = Integer.convertToBinary(v);
+            while(temp.length() < 16){
+                temp = "0" + temp;
+            }
+            return temp;
         }
     },
     Float{
@@ -376,6 +425,17 @@ enum GeneDataType{
         @Override
         public int numBits() {
             return 32;
+        }
+
+        @Override
+        public Float randVal(Object max, Object min) {
+            return GeneticAlgorithmConfig.nextFloat((Float)max - (Float)min) + (Float)min;
+        }
+
+        @Override
+        public String convertToBinary(Object val) {
+            // TODO Auto-generated method stub
+            return null;
         }
     },
     Boolean{
@@ -391,6 +451,17 @@ enum GeneDataType{
         public int numBits() {
             return 1;
         }
+
+        @Override
+        public Boolean randVal(Object max, Object min) {
+            return GeneticAlgorithmConfig.nextBoolean();
+        }
+
+        @Override
+        public String convertToBinary(Object val) {
+            // TODO Auto-generated method stub
+            return null;
+        }
     },
     Double{
         @Override
@@ -402,9 +473,24 @@ enum GeneDataType{
         public int numBits() {
             return 64;
         }
+
+        @Override
+        public Double randVal(Object max, Object min) {
+            return GeneticAlgorithmConfig.nextDouble((Double)max - (Double)min) + (Double)min;
+        }
+
+        @Override
+        public String convertToBinary(Object val) {
+            // TODO Auto-generated method stub
+            return null;
+        }
     };
 
     public abstract <T> T convertFromBin(String str);
 
     public abstract int numBits();
+
+    public abstract <T> T randVal(Object max, Object min);
+
+    public abstract String convertToBinary(Object val);
 }

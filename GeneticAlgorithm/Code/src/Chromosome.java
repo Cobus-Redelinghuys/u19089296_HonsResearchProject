@@ -1,10 +1,9 @@
-import java.util.ArrayList;
-
 public class Chromosome {
     private final String bitRepresentation;
     
     public Chromosome(){
         bitRepresentation = "";
+        
     }
 
     public Object[] convertFromBin(){
