@@ -419,7 +419,8 @@ enum GeneDataType{
     Float{
         @Override
         public Float convertFromBin(String str) {
-            return java.lang.Float.intBitsToFloat(java.lang.Integer.parseInt(str));
+            int v = java.lang.Integer.parseInt(str,2);
+            return java.lang.Float.intBitsToFloat(v);
         }
 
         @Override
@@ -434,8 +435,8 @@ enum GeneDataType{
 
         @Override
         public String convertToBinary(Object val) {
-            // TODO Auto-generated method stub
-            return null;
+            int v = java.lang.Float.floatToIntBits((Float)val);
+            return Integer.convertToBinary(v);
         }
     },
     Boolean{
@@ -459,8 +460,10 @@ enum GeneDataType{
 
         @Override
         public String convertToBinary(Object val) {
-            // TODO Auto-generated method stub
-            return null;
+            if((Boolean)val)
+                return "1";
+            else 
+                return "0";
         }
     },
     Double{
@@ -481,8 +484,8 @@ enum GeneDataType{
 
         @Override
         public String convertToBinary(Object val) {
-            // TODO Auto-generated method stub
-            return null;
+            long v = java.lang.Double.doubleToLongBits((Double)val);
+            return java.lang.Long.toBinaryString(v);
         }
     };
 
