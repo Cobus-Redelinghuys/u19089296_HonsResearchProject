@@ -7,5 +7,6 @@
     "populationSize":100,
     "numGenerations":100,
     "crossOverType":"OnePointCrossOver",
-    "mutationProp":0.5
+    "mutationProp":0.5,
+    "nCrossOver":5
 }

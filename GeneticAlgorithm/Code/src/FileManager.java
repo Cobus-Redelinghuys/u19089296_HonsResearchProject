@@ -21,6 +21,7 @@ public class FileManager {
         jsonObject.put("crossOverType", "OnePointCrossOver");
         jsonObject.put("mutationType", "BitWisInversion");
         jsonObject.put("seed", 0);
+        jsonObject.put("nCrossOver", 5);
 
         try(FileWriter file = new FileWriter("GeneticAlgorithmConfig.json")){
             String jsonString = jsonObject.toJSONString();
@@ -68,6 +69,7 @@ class GeneticAlgorithmConfig{
     public static final MutationType mutationType;
     public static final long seed;
     private static final Random random;
+    public static final int nCrossOver;
 
     static{
         JSONParser jsonParser = new JSONParser();
@@ -169,6 +171,15 @@ class GeneticAlgorithmConfig{
             seed = (long)res;
         }
         random = new Random(seed);
+
+        try{
+            res = jsonObject.get("nCrossOver");
+        } catch(Exception e){
+            e.printStackTrace();
+            res = 5;
+        } finally{
+            nCrossOver = (int)res;
+        }
     }
 
     public static Integer nextInt(Integer bound){
