@@ -7,6 +7,14 @@
             "invalidValues":[
                 5.0,
                 10.0]
+        },
+        {
+            "minValue":-10,
+            "geneDataType":"Integer",
+            "maxValue":10,
+            "invalidValues":[
+                5,
+                10]
         }
     ]
 }

@@ -10,10 +10,9 @@ public class App {
                     FileManager.writeChromosomeConfigFile();
                 }
             }
+        } else {
+            GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm();
         }
-        System.out.println(GeneticAlgorithmConfig.crossoverProp);
-        System.out.println(GeneticAlgorithmConfig.crossOverType);
-        System.out.println(ChromosomeConfig.geneConfigs[0].maxValue());
     }
 
 }

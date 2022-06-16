@@ -1,5 +1,7 @@
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import org.json.simple.JSONArray;
@@ -222,7 +224,7 @@ class ChromosomeConfig{
 
 @SuppressWarnings("rawtypes")
 class GeneConfig<T>{
-    private final GeneDataType geneDataType;
+    public final GeneDataType geneDataType;
     private final T maxValue;
     private final T minValue;
     public final T[] invalidValues;
@@ -274,7 +276,7 @@ class GeneConfig<T>{
         }
 
         try{
-            res = (T)jsonObject.get("maxValue");
+            res = geneDataType.convert(jsonObject.get("maxValue"));
         } catch(Exception e){
             e.printStackTrace();
         }finally{
@@ -282,7 +284,7 @@ class GeneConfig<T>{
         }
 
         try{
-            res = (T)jsonObject.get("minValue");
+            res = geneDataType.convert(jsonObject.get("minValue"));
         } catch(Exception e){
             e.printStackTrace();
         }finally{
@@ -336,7 +338,8 @@ class GeneConfig<T>{
     }
 
     public T convertFromBin(String str){
-        return geneDataType.convertFromBin(str);
+        T val = geneDataType.convertFromBin(str); 
+        return val;
     }
 
     public int numBits(){
@@ -344,7 +347,12 @@ class GeneConfig<T>{
     }
 
     public String generateGene(){
-        return geneDataType.convertToBinary(geneDataType.randVal(maxValue, minValue));
+        T val = geneDataType.randVal(maxValue, minValue);
+        List<T> notAllowed = Arrays.asList(invalidValues);
+        while(notAllowed.contains(val)){
+            val = geneDataType.randVal(maxValue, minValue);
+        }
+        return geneDataType.convertToBinary(val);
     }
 
 }
@@ -368,8 +376,8 @@ enum GeneDataType{
     Integer{
         @Override
         public Integer convertFromBin(String str) {
-            long l = Long.parseLong(str, 2);
-            return (int)l;
+            Long l = Long.parseLong(str, 2);
+            return l.intValue();
         }
 
         @Override
@@ -384,7 +392,30 @@ enum GeneDataType{
 
         @Override
         public String convertToBinary(Object val) {
-            return java.lang.Integer.toBinaryString((java.lang.Integer)val);
+            String temp = java.lang.Integer.toBinaryString((java.lang.Integer)val);
+            return pad(temp, numBits());
+            //long l = java.lang.Integer.toUnsignedLong((java.lang.Integer)val);
+            //return Long.toBinaryString(l);
+        }
+
+        @Override
+        public Integer convert(Long val) throws IncorrectValueException {
+            return val.intValue();
+        }
+
+        @Override
+        public Integer convert(java.lang.Double val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Integer convert(String val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Integer convert(java.lang.Boolean val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
         }
     },
     Character{
@@ -410,10 +441,29 @@ enum GeneDataType{
         public String convertToBinary(Object val) {
             int v = (char)val;
             String temp = Integer.convertToBinary(v);
-            while(temp.length() < 16){
-                temp = "0" + temp;
-            }
-            return temp;
+            return pad(temp, numBits());
+        }
+
+        @Override
+        public Character convert(Long val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Character convert(java.lang.Double val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Character convert(String val) throws IncorrectValueException {
+            if(val.length() > 0)
+                throw new IncorrectValueException(val, this);
+            return val.charAt(0);
+        }
+
+        @Override
+        public Character convert(java.lang.Boolean val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
         }
     },
     Float{
@@ -436,7 +486,29 @@ enum GeneDataType{
         @Override
         public String convertToBinary(Object val) {
             int v = java.lang.Float.floatToIntBits((Float)val);
-            return Integer.convertToBinary(v);
+            return pad(Integer.convertToBinary(v), numBits());
+        }
+
+        @Override
+        public Float convert(Long val) {
+            int v = val.intValue();
+            return (float)v;
+        }
+
+        @Override
+        public Float convert(java.lang.Double val) {
+            double v = val;
+            return (float)v;
+        }
+
+        @Override
+        public Float convert(String val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Float convert(java.lang.Boolean val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
         }
     },
     Boolean{
@@ -465,16 +537,37 @@ enum GeneDataType{
             else 
                 return "0";
         }
+
+        @Override
+        public Boolean convert(Long val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Boolean convert(java.lang.Double val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Boolean convert(String val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Boolean convert(java.lang.Boolean val) throws IncorrectValueException {
+            return val;
+        }
     },
     Double{
         @Override
         public Double convertFromBin(String str) {
-            return java.lang.Double.longBitsToDouble(Long.valueOf(str,2));
+            Long v = Long.valueOf(str,2);
+            return java.lang.Double.longBitsToDouble(v);
         }
 
         @Override
         public int numBits() {
-            return 64;
+            return 63;
         }
 
         @Override
@@ -485,7 +578,28 @@ enum GeneDataType{
         @Override
         public String convertToBinary(Object val) {
             long v = java.lang.Double.doubleToLongBits((Double)val);
-            return java.lang.Long.toBinaryString(v);
+            return pad(java.lang.Long.toBinaryString(v), numBits());
+        }
+
+        @Override
+        public Double convert(Long val) {
+            int v = val.intValue();
+            return (double)v;
+        }
+
+        @Override
+        public Double convert(java.lang.Double val){
+            return val;
+        }
+
+        @Override
+        public Double convert(String val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
+        }
+
+        @Override
+        public Double convert(java.lang.Boolean val) throws IncorrectValueException {
+            throw new IncorrectValueException(val, this);
         }
     };
 
@@ -496,4 +610,54 @@ enum GeneDataType{
     public abstract <T> T randVal(Object max, Object min);
 
     public abstract String convertToBinary(Object val);
+
+    public abstract <T> T convert(Long val) throws IncorrectValueException;
+
+    public abstract <T> T convert(Double val) throws IncorrectValueException;
+
+    public abstract <T> T convert(String val) throws IncorrectValueException;
+
+    public abstract <T> T convert(Boolean val) throws IncorrectValueException;
+
+    public <T> T convert(Object val) throws IncorrectValueException{
+        if(val instanceof Long)
+            return convert((Long)val);
+        if(val instanceof java.lang.Double)
+            return convert((java.lang.Double)val);
+        if(val instanceof String)
+            return convert((String)val);
+        if(val instanceof Boolean)
+            return convert((Boolean)val);
+        throw new IncorrectValueException(val, this);
+    }
+
+    class IncorrectValueException extends Exception{
+        public IncorrectValueException(Long val, GeneDataType geneDataType){
+            super("Incorrect value: " + val + " for type: " + geneDataType.name());
+        }
+
+        public IncorrectValueException(Double val, GeneDataType geneDataType){
+            super("Incorrect value: " + val.toString() + " for type: " + geneDataType.name());
+        }
+
+        public IncorrectValueException(String val, GeneDataType geneDataType){
+            super("Incorrect value: " + val + " for type: " + geneDataType.name());
+        }
+
+        public IncorrectValueException(Boolean val, GeneDataType geneDataType){
+            super("Incorrect value: " + val + " for type: " + geneDataType.name());
+        }
+
+        public IncorrectValueException(Object val, GeneDataType geneDataType){
+            super("Incorrect value: " + val + " for type: " + geneDataType.name());
+        }
+    }
+
+    private static String pad(String str, int numBits){
+        String temp = str;
+        while(temp.length() < numBits){
+            temp = "0" + temp; 
+        }
+        return temp;
+    }
 }

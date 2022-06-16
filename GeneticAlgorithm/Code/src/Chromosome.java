@@ -1,9 +1,14 @@
 public class Chromosome {
     private final String bitRepresentation;
     
+    @SuppressWarnings({"rawtypes"})
     public Chromosome(){
-        bitRepresentation = "";
-        
+        String bits = "";
+        for(GeneConfig geneConfig : ChromosomeConfig.geneConfigs){
+            bits += geneConfig.generateGene();
+        }
+
+        bitRepresentation = bits;
     }
 
     public Object[] convertFromBin(){
@@ -18,11 +23,24 @@ public class Chromosome {
                 startPos = ChromosomeConfig.geneConfigs[i-1].numBits();
 
             finalPos = ChromosomeConfig.geneConfigs[i].numBits();
-            String str = line.substring(startPos, finalPos);
+            String str = line.substring(startPos, startPos + finalPos);
             result[i] = ChromosomeConfig.geneConfigs[i].convertFromBin(str);
         }
 
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return bitRepresentation;
+    }
+
+    public String genesString(){
+        String line = "";
+        for(Object obj: convertFromBin()){
+            line += obj + "|";
+        }
+        return line;
     }
 
 }
