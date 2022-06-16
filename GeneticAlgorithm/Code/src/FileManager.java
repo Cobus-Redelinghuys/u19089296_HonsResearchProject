@@ -178,7 +178,7 @@ class GeneticAlgorithmConfig{
             e.printStackTrace();
             res = 5;
         } finally{
-            nCrossOver = (int)res;
+            nCrossOver = ((Long)res).intValue();
         }
     }
 
