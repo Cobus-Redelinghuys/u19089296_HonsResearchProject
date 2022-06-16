@@ -561,13 +561,16 @@ enum GeneDataType{
     Double{
         @Override
         public Double convertFromBin(String str) {
-            Long v = Long.valueOf(str,2);
+            String temp = "0" + str.substring(1);
+            Long v = Long.valueOf(temp, 2);
+            if(str.charAt(0) == '1')
+                return -1*java.lang.Double.longBitsToDouble(v);
             return java.lang.Double.longBitsToDouble(v);
         }
 
         @Override
         public int numBits() {
-            return 63;
+            return 64;
         }
 
         @Override
