@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class GeneticAlgorithm {
     Chromosome[] population = new Chromosome[GeneticAlgorithmConfig.populationSize];
@@ -8,6 +7,14 @@ public class GeneticAlgorithm {
         for(int i=0; i < population.length; i++){
             population[i] = ChromosomeConfig.generatChromosome();
         }
+    }
+
+    public void runAlgorithm(){
+        
+    }
+
+    public void run(int gen){
+
     }
 
     public float variance(){

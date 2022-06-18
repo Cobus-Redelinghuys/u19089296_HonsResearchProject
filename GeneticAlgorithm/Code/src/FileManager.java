@@ -1,5 +1,6 @@
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -366,14 +367,112 @@ class GeneConfig<T>{
         return geneDataType.convertToBinary(val);
     }
 
+    @SuppressWarnings("unchecked")
+    public boolean validate(T val){
+        Comparable<T> compVal = (Comparable<T>)val;
+        if(compVal.compareTo(minValue) < 0 || compVal.compareTo(maxValue) > 0)
+            return false;
+
+        for(T inValid: invalidValues){
+            if(inValid.equals(val))
+                return false;
+        }
+
+        return true;
+    }
+
 }
 
 enum CrossOverType{
-    OnePointCrossOver,
-    NPointCrossOver,
-    SegmentedCrossOver,
-    UniformCrossOver,
-    ShuffleCrossOver
+    OnePointCrossOver{
+        @Override
+        public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
+            Chromosome[] res = new Chromosome[2];
+            int point = GeneticAlgorithmConfig.nextInt(c1.toString().length());
+            String str1 = c1.toString().substring(0, point) + c2.toString().substring(point);
+            String str2 = c2.toString().substring(0, point) + c1.toString().substring(point);
+            res[0] = new Chromosome(str1);
+            res[1] = new Chromosome(str2);
+            return res;
+        }
+    },
+    NPointCrossOver{
+        @Override
+        public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
+            Chromosome[] res = new Chromosome[]{c1, c2};
+            for(int i=0; i < GeneticAlgorithmConfig.nCrossOver; i++){
+                res = OnePointCrossOver.crossOver(res[0], res[1]);
+            }
+            return res;
+        }
+    },
+    SegmentedCrossOver{
+        @Override
+        public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
+            Chromosome[] res = new Chromosome[]{c1, c2};
+            int bound = GeneticAlgorithmConfig.nextInt(c1.toString().length());
+            for(int i=0; i < bound; i++){
+                res = OnePointCrossOver.crossOver(res[0], res[1]);
+            }
+            return res; 
+        }
+    },
+    UniformCrossOver{
+        @Override
+        public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
+            Chromosome[] res = new Chromosome[2];
+            String str1 = "";
+            String str2 = "";
+            for(int i=0; i < c1.toString().length(); i++){
+                if(i % 2 == 0){
+                    str1 += c2.toString().charAt(i);
+                    str2 += c1.toString().charAt(i);
+                } else {
+                    str1 += c1.toString().charAt(i);
+                    str2 += c2.toString().charAt(i);
+                }
+            }
+            res[0] = new Chromosome(str1);
+            res[1] = new Chromosome(str2);
+            return res;
+        }
+    },
+    ShuffleCrossOver{
+        @Override
+        public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
+            String[] shuffeled = shuffle(c1.toString(), c2.toString());
+            Chromosome[] res = CrossOverType.OnePointCrossOver.crossOver(new Chromosome(shuffeled[0]), new Chromosome(shuffeled[1]));
+            return res;
+        }
+
+        private String[] shuffle(String s1, String s2){
+            String[] res = new String[2];
+            ArrayList<Character> ch1 = new ArrayList<>();
+            ArrayList<Character> ch2 = new ArrayList<>();
+
+            for(int i=0; i < s1.length(); i++){
+                ch1.add(s1.charAt(i));
+                ch2.add(s2.charAt(i));
+            }
+
+            String str1 = "";
+            String str2 = "";
+
+            while(!ch1.isEmpty()){
+                int pos = GeneticAlgorithmConfig.nextInt(ch1.size());
+                str1 += ch1.get(pos);
+                str2 += ch2.get(pos);
+                ch1.remove(pos);
+                ch2.remove(pos);
+            }
+
+            res[0] = str1;
+            res[1] = str2;
+            return res;
+        }
+    };
+
+    public abstract Chromosome[] crossOver(Chromosome c1, Chromosome c2);
 }
 
 enum MutationType{
