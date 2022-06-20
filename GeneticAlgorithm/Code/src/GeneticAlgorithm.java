@@ -14,7 +14,7 @@ public class GeneticAlgorithm {
     }
 
     public void run(int gen){
-
+        
     }
 
     public float variance(){

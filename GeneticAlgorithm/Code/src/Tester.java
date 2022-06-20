@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+
 public class Tester {
     public static void TestConversions(){
         System.out.println(Integer.toBinaryString(-100).length());
@@ -19,4 +22,20 @@ public class Tester {
         System.out.println(GeneDataType.Double.convertToBinary(5.4));
         System.out.println((Double)GeneDataType.Double.convertFromBin(GeneDataType.Double.convertToBinary(5.4)));
     }
+
+    public static void TestCrossOver(){
+        Chromosome c1 = ChromosomeConfig.generatChromosome();
+        Chromosome c2 = ChromosomeConfig.generatChromosome();
+        ArrayList<Chromosome> chromosomes = new ArrayList<>();
+        chromosomes.add(c1);
+        chromosomes.add(c2);
+        for(CrossOverType crossOverType: CrossOverType.values()){
+            chromosomes.addAll(Arrays.asList(crossOverType.crossOver(c1, c2)));
+        }
+
+        for(Chromosome chromosome: chromosomes){
+            System.out.println(chromosome.toString());
+        }
+    }
 }
+//
