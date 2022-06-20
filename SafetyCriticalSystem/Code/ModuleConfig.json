@@ -1,0 +1,18 @@
+{
+    "modules" : [
+        {
+            "moduleName" : "module1",
+            "enabled" : true,
+            "relativePath" : "./Modules/",
+            "executionCommand" : "",
+            "numberOfCLArguments" : 2
+        },
+        {
+            "moduleName" : "module2",
+            "enabled" : true,
+            "relativePath" : "./Modules/",
+            "executionCommand" : "",
+            "numberOfCLArguments" : 2
+        }
+    ]
+}
