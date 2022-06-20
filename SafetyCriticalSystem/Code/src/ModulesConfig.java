@@ -81,4 +81,6 @@ class ModuleConfig{
             numberOfCLArguments = ((Long)res).intValue();
         }
     }
+
+    //public 
 }
