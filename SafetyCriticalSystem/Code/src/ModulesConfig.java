@@ -1,4 +1,8 @@
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -17,12 +21,21 @@ public class ModulesConfig {
         }
         JSONObject jsonObject = (JSONObject)obj;
         JSONArray jsonArray = (JSONArray)jsonObject.get("modules");
-        ModuleConfig[] tempArr = new ModuleConfig[jsonArray.size()];
-        for(int i=0; i < tempArr.length; i++){
+        ArrayList<ModuleConfig> tempArr = new ArrayList<>();
+        for(int i=0; i < jsonArray.size(); i++){
             JSONObject jObject = (JSONObject)jsonArray.get(i);
-            tempArr[i] = new ModuleConfig(jObject);
+            if((Boolean)jObject.get("enabled"))
+                tempArr.add(new ModuleConfig(jObject));
         }
-        moduleConfigs = tempArr;
+        moduleConfigs = tempArr.toArray(new ModuleConfig[0]);
+    }
+
+    public static String[][] executeSystem(){
+        String[][] result = new String[moduleConfigs.length][2];
+        for(int i=0; i < result.length; i++){
+            result[i] = moduleConfigs[i].executeModule();
+        }
+        return result;
     }
 
 }
@@ -82,5 +95,27 @@ class ModuleConfig{
         }
     }
 
-    //public 
+    public String[] executeModule(){
+        String[] result = new String[2];
+        try{
+            Runtime runtime = Runtime.getRuntime();
+            Process process = runtime.exec(executionCommand + " " + relativePath);
+            InputStream inputStream = process.getInputStream();
+			InputStreamReader isr = new InputStreamReader(inputStream);
+			InputStream errorStream = process.getErrorStream();
+			InputStreamReader esr = new InputStreamReader(errorStream);
+            result[0] = "";
+            result[1] = "";
+            int n1;
+            while((n1 = isr.read()) > 0){
+                result[0] += (char)n1; 
+            }
+            while((n1 = esr.read()) > 0){
+                result[1] += (char)n1;
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return result;
+    }
 }

@@ -2,16 +2,16 @@
     "modules" : [
         {
             "moduleName" : "module1",
-            "enabled" : true,
-            "relativePath" : "./Modules/",
+            "enabled" : false,
+            "relativePath" : "./modules/cppTest.exe",
             "executionCommand" : "",
             "numberOfCLArguments" : 2
         },
         {
             "moduleName" : "module2",
             "enabled" : true,
-            "relativePath" : "./Modules/",
-            "executionCommand" : "",
+            "relativePath" : "./modules/test.jar",
+            "executionCommand" : "java -jar",
             "numberOfCLArguments" : 2
         }
     ]
