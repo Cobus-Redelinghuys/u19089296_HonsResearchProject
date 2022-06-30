@@ -2,7 +2,7 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.HashMap;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -30,10 +30,10 @@ public class ModulesConfig {
         moduleConfigs = tempArr.toArray(new ModuleConfig[0]);
     }
 
-    public static String[][] executeSystem(){
+    public static String[][] executeSystem(Input input){
         String[][] result = new String[moduleConfigs.length][2];
         for(int i=0; i < result.length; i++){
-            result[i] = moduleConfigs[i].executeModule();
+            result[i] = moduleConfigs[i].executeModule(input.moduleInputs.get(moduleConfigs[i].moduleName));
         }
         return result;
     }
@@ -95,11 +95,15 @@ class ModuleConfig{
         }
     }
 
-    public String[] executeModule(){
+    public String[] executeModule(ArrayList<String> inputs){
         String[] result = new String[2];
+        String args = "";
+        for(String arg: inputs){
+            args += arg + " ";
+        }
         try{
             Runtime runtime = Runtime.getRuntime();
-            Process process = runtime.exec(executionCommand + " " + relativePath);
+            Process process = runtime.exec(executionCommand + " " + relativePath + " " + args);
             InputStream inputStream = process.getInputStream();
 			InputStreamReader isr = new InputStreamReader(inputStream);
 			InputStream errorStream = process.getErrorStream();
@@ -111,11 +115,64 @@ class ModuleConfig{
                 result[0] += (char)n1; 
             }
             while((n1 = esr.read()) > 0){
+                System.out.println(n1);
                 result[1] += (char)n1;
             }
+            while(process.isAlive()){}
+            if(process.exitValue() == 139)
+                result[1] += "Seg fault";
         } catch (Exception e){
             e.printStackTrace();
         }
         return result;
+    }
+}
+
+class Input{
+    public final HashMap<String, ArrayList<String>> moduleInputs;
+
+    public Input() throws InputException{
+        HashMap<String, ArrayList<String>> map = new HashMap<>();
+        JSONParser jsonParser = new JSONParser();
+        Object obj = null;
+        try{
+            obj = jsonParser.parse(new FileReader("Input.json"));
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+        JSONObject jsonObject = (JSONObject)obj;
+        for(ModuleConfig moduleConfig: ModulesConfig.moduleConfigs){
+            if(!jsonObject.containsKey(moduleConfig.moduleName) || (map.containsKey(moduleConfig.moduleName))){
+                throw new InputException(moduleConfig);
+            } else {
+                ArrayList<String> inputs = new ArrayList<>();
+                if(jsonObject.get(moduleConfig.moduleName).getClass().equals(JSONArray.class)){
+                    JSONArray jsonArray = (JSONArray)jsonObject.get(moduleConfig.moduleName);
+                    for(Object object : jsonArray){
+                        inputs.add(object.toString());
+                    }
+                } else {
+                    inputs.add(jsonObject.get(moduleConfig.moduleName).toString());  
+                }
+                map.put(moduleConfig.moduleName, inputs);
+                if(map.get(moduleConfig.moduleName).size() != moduleConfig.numberOfCLArguments)
+                    throw new InputException(moduleConfig);
+ 
+            }
+        }
+        moduleInputs = map;
+    }
+
+    class InputException extends Exception{
+        public final ModuleConfig errorModule;
+
+        public InputException(ModuleConfig moduleConfig){
+            errorModule = moduleConfig;
+        }
+
+        @Override
+        public String toString() {
+            return "Incorrect input for module: " + errorModule.moduleName;
+        }
     }
 }

@@ -2,17 +2,17 @@
     "modules" : [
         {
             "moduleName" : "module1",
-            "enabled" : false,
-            "relativePath" : "./modules/cppTest.exe",
+            "enabled" : true,
+            "relativePath" : "./modules/Module1/Module1",
             "executionCommand" : "",
-            "numberOfCLArguments" : 2
+            "numberOfCLArguments" : 1
         },
         {
             "moduleName" : "module2",
             "enabled" : true,
-            "relativePath" : "./modules/test.jar",
-            "executionCommand" : "java -jar",
-            "numberOfCLArguments" : 2
+            "relativePath" : "./modules/Module2/Module2",
+            "executionCommand" : "",
+            "numberOfCLArguments" : 1
         }
     ]
 }
