@@ -37,5 +37,13 @@ public class Tester {
             System.out.println(chromosome.toString());
         }
     }
+
+    public static void TestMutation(){
+        Chromosome c1 = ChromosomeConfig.generatChromosome();
+        System.out.println(c1.toString());
+        for(MutationType mutationType: MutationType.values()){
+            System.out.println(mutationType.mutate(c1).toString());
+        }
+    }
 }
 //
