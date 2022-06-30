@@ -1,5 +1,5 @@
 main:
-	g++ -c Module1.cpp -o Module1.o && g++ Module1.o -o Module1
+	g++ -c Module2.cpp -o Module2.o && g++ Module2.o -o Module2
 
 clean:
 	rm *.o
