@@ -1,6 +1,8 @@
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -30,10 +32,11 @@ public class ModulesConfig {
         moduleConfigs = tempArr.toArray(new ModuleConfig[0]);
     }
 
-    public static String[][] executeSystem(Input input){
-        String[][] result = new String[moduleConfigs.length][2];
-        for(int i=0; i < result.length; i++){
-            result[i] = moduleConfigs[i].executeModule(input.moduleInputs.get(moduleConfigs[i].moduleName));
+    @SuppressWarnings("unchecked")
+    public static JSONArray executeSystem(Input input){
+        JSONArray result = new JSONArray();
+        for(int i=0; i < moduleConfigs.length; i++){
+            result.add(moduleConfigs[i].executeModule(input.moduleInputs.get(moduleConfigs[i].moduleName)));
         }
         return result;
     }
@@ -95,13 +98,17 @@ class ModuleConfig{
         }
     }
 
-    public String[] executeModule(ArrayList<String> inputs){
+    @SuppressWarnings("unchecked")
+    public JSONObject executeModule(ArrayList<String> inputs){
         String[] result = new String[2];
         String args = "";
+        LocalTime start = null;
+        LocalTime end;
         for(String arg: inputs){
             args += arg + " ";
         }
         try{
+            start = LocalTime.now();
             Runtime runtime = Runtime.getRuntime();
             Process process = runtime.exec(executionCommand + " " + relativePath + " " + args);
             InputStream inputStream = process.getInputStream();
@@ -118,13 +125,26 @@ class ModuleConfig{
                 System.out.println(n1);
                 result[1] += (char)n1;
             }
-            while(process.isAlive()){}
+            while(process.isAlive()){
+                LocalTime temp = LocalTime.now();
+                if(Math.abs(Duration.between(temp, start).toMillis()) > 30000){
+                    process.destroyForcibly();
+                    result[1] += "Infinite Loop";
+                    break;  
+                }
+            }
             if(process.exitValue() == 139)
                 result[1] += "Seg fault";
         } catch (Exception e){
+            result[1] += e.getMessage();
             e.printStackTrace();
         }
-        return result;
+        end = LocalTime.now();
+        JSONObject obj = new JSONObject();
+        obj.put("stdout", result[0]);
+        obj.put("stderr", result[1]);
+        obj.put("duration", Duration.between(start, end).toMillis());
+        return obj;
     }
 }
 

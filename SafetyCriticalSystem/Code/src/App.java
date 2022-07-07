@@ -1,3 +1,8 @@
+import java.io.FileWriter;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 public class App {
     public static void main(String[] args) throws Exception {
         Input input = null;
@@ -6,16 +11,28 @@ public class App {
         } catch(Exception e){
             e.printStackTrace();
         }
-        String[][] result = ModulesConfig.executeSystem(input);
-        for(String[] res : result){
-            if(res[0].contains("\n"))
-                System.out.print("stdout: " + res[0]);
+
+        JSONArray result = ModulesConfig.executeSystem(input);
+
+        try(FileWriter file = new FileWriter("Output.json");){
+            file.write(result.toJSONString());
+            file.flush();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+        for(int i=0; i < result.size(); i++){
+            JSONObject res = (JSONObject)result.get(i);
+            System.out.println("Module: " + i);
+            if(((String)res.get("stdout")).contains("\n"))
+                System.out.print("stdout: " + res.get("stdout"));
             else
-                System.out.println("stdout: " + res[0]);
-            if(res[1].contains("\n"))
-                System.out.print("stderr: " + res[1]);
+                System.out.println("stdout: " + res.get("stdout"));
+            if(((String)res.get("stderr")).contains("\n"))
+                System.out.print("stderr: " + res.get("stderr"));
             else
-                System.out.println("stderr: " + res[1]);
+                System.out.println("stderr: " + res.get("stderr"));
+            System.out.println("duration: " + res.get("duration"));
         }
     }
 }
