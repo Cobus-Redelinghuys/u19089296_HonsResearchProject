@@ -14,6 +14,7 @@ public class App {
             GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm();
             System.out.println(geneticAlgorithm.variance());
         }
+        Fitness.determineFitness(ChromosomeConfig.generatChromosome());
     }
 
 }

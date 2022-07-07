@@ -20,6 +20,8 @@ public class FileManager {
         jsonObject.put("mutationType", "BitWisInversion");
         jsonObject.put("seed", 0);
         jsonObject.put("nCrossOver", 5);
+        jsonObject.put("interpreterPath", "");
+        jsonObject.put("interpreterCommand", "java -jar ");
 
         try(FileWriter file = new FileWriter("GeneticAlgorithmConfig.json")){
             String jsonString = jsonObject.toJSONString();
@@ -53,6 +55,23 @@ public class FileManager {
             e.printStackTrace();
         }
     }
+
+    @SuppressWarnings("unchecked")
+    static void writeChromosomeToFile(Chromosome c){
+        JSONObject jsonObject = new JSONObject();
+        Object[] genes = c.convertFromBin();
+        for(int i=0; i < genes.length; i++){
+            jsonObject.put("module" + (i+1), genes[i]);
+            System.out.println(genes[i].toString());
+        }
+
+        try(FileWriter file = new FileWriter("Input.json")){
+            file.write(jsonObject.toJSONString());
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
 }
 
 
@@ -68,6 +87,8 @@ class GeneticAlgorithmConfig{
     public static final long seed;
     private static final Random random;
     public static final int nCrossOver;
+    public static final String interperterPath;
+    public static final String interperterCommand;
 
     static{
         JSONParser jsonParser = new JSONParser();
@@ -178,6 +199,26 @@ class GeneticAlgorithmConfig{
         } finally{
             nCrossOver = ((Long)res).intValue();
         }
+
+        try{
+            String line = (String)jsonObject.get("interpreterPath");
+            res = line;
+        } catch(Exception e){
+            e.printStackTrace();
+            res = "";
+        } finally{
+            interperterPath = (String)res;
+        }
+
+        try{
+            String line = (String)jsonObject.get("interpreterCommand");
+            res = line;
+        } catch(Exception e){
+            e.printStackTrace();
+            res = "";
+        } finally{
+            interperterCommand = (String)res;
+        }
     }
 
     public static Integer nextInt(Integer bound){
@@ -189,11 +230,11 @@ class GeneticAlgorithmConfig{
     }
 
     public static Double nextDouble(Double bound){
-        return random.nextDouble(bound);
+        return bound*random.nextDouble();
     }
 
     public static Float nextFloat(Float bound){
-        return random.nextFloat(bound);
+        return bound*random.nextFloat();
     }
 
     public static Character nextCharacter(Integer bound){

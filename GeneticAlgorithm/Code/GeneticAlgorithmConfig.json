@@ -8,5 +8,7 @@
     "numGenerations":100,
     "crossOverType":"OnePointCrossOver",
     "mutationProp":0.5,
-    "nCrossOver":5
+    "nCrossOver":5,
+    "interpreterPath" : "",
+    "interpreterCommand" : "java -jar "
 }
