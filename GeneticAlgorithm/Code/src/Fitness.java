@@ -1,14 +1,29 @@
+import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 public class Fitness {
     public static float determineFitness(Chromosome input){
         FileManager.writeChromosomeToFile(input);
-        System.out.println("Fitness determined");
         executeSystem();
-        System.out.println("Finished");
+        ModuleReturns[] output = null;
+        try{
+            output = parseOutput();
+        } catch (Exception e){
+            e.printStackTrace();
+            return 0;
+        } 
+
+        for(ModuleReturns moduleReturns: output){
+            System.out.println(moduleReturns);
+        }
+
         return 0;
     }
 
@@ -41,6 +56,24 @@ public class Fitness {
             e.printStackTrace();
         }
     }
+
+    private static ModuleReturns[] parseOutput() throws Exception{
+        JSONParser jsonParser = new JSONParser();
+        Object obj = null;
+        try{
+            obj = jsonParser.parse(new FileReader("Output.json"));
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        JSONArray outputArray = (JSONArray)obj;
+        ModuleReturns[] tempArr = new ModuleReturns[outputArray.size()];
+        for(int i=0; i < tempArr.length; i++){
+            JSONObject jObject = (JSONObject)outputArray.get(i);
+            tempArr[i] = new ModuleReturns(jObject);
+        }
+        return tempArr;
+    }
 }
 
 @SuppressWarnings({"rawtypes", "unchecked"})
@@ -55,5 +88,39 @@ class FitnessMemory{
             mapLists.add(temp);
         }
         maps = mapLists.toArray(new HashMap[0]);
+    }
+}
+
+class ModuleReturns{
+    public final String stdout;
+    public final String stderr;
+    public final long executionDuration;
+
+    public ModuleReturns(JSONObject obj) throws MalformedOutput{
+        if(!obj.containsKey("stdout") || !obj.containsKey("stderr") || !obj.containsKey("duration"))
+            throw new MalformedOutput();
+
+        try{
+            stdout = (String)obj.get("stdout");
+            stderr = (String)obj.get("stderr");
+            executionDuration = (Long)obj.get("duration");
+        } catch(Exception e){
+            e.printStackTrace();
+            throw new MalformedOutput();
+        }
+       
+    }
+
+    class MalformedOutput extends Exception{
+        public MalformedOutput(){
+            super("Output received from critical system is malformed");
+        }
+    }
+
+    @Override
+    public String toString() {
+        String res = "";
+        res += "stdout: " + stdout + "stderr: " + stderr + "execution duration: " + executionDuration;
+        return res;
     }
 }
