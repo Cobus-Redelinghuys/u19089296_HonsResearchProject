@@ -61,7 +61,7 @@ public class Fitness {
         JSONParser jsonParser = new JSONParser();
         Object obj = null;
         try{
-            obj = jsonParser.parse(new FileReader("Output.json"));
+            obj = jsonParser.parse(new FileReader("./Output.json"));
         } catch (Exception e){
             e.printStackTrace();
         }
