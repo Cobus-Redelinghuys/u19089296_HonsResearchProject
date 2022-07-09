@@ -4,12 +4,14 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.naming.spi.DirStateFactory.Result;
+
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class Fitness {
-    public static double determineFitness(Chromosome input){
+    public static double determineFitness(Chromosome input, int gen){
         FileManager.writeChromosomeToFile(input);
         executeSystem();
         ModuleReturns[] output = null;
@@ -25,8 +27,10 @@ public class Fitness {
         }
 
         double result = 0;
-        result += LTL(output);
-
+        FitnessResult resA = LTL(output);
+        result += resA.val;
+        result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
+        result += FitnessConfig.GWeight*FitnessMemory.G(input, gen);
         return result;
     }
 
@@ -78,7 +82,7 @@ public class Fitness {
         return tempArr;
     }
 
-    private static double LTL(ModuleReturns[] output){
+    private static FitnessResult LTL(ModuleReturns[] output){
         return FitnessConfig.determineFitness(output);
     }
 
@@ -87,16 +91,32 @@ public class Fitness {
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 class FitnessMemory{
-    public static HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>>[] maps;
+    public static HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>> map;
 
     static{
-        ArrayList<HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>>> mapLists = new ArrayList<>();
+        map = new HashMap<>();
         for(GeneConfig geneConfig: ChromosomeConfig.geneConfigs){
-            HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>> temp = new HashMap<>();
-            temp.put(geneConfig, new HashMap<>());
-            mapLists.add(temp);
+            map.put(geneConfig, new HashMap<>());
         }
-        maps = mapLists.toArray(new HashMap[0]);
+    }
+
+    public static double G(Chromosome x, int gen){
+        if(gen <= 0)
+            return 0;
+
+        double result = 0;
+        for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
+            int count = 0;
+            HashMap<String, ArrayList<Chromosome>> innerMap = map.get(ChromosomeConfig.geneConfigs[i]);
+            if(innerMap.containsKey(x.convertFromBin()[i].toString())){
+                count = innerMap.get(x.convertFromBin()[i].toString()).size();
+            } else {
+                innerMap.put(x.convertFromBin()[i].toString(), new ArrayList<>());
+            }
+            result += Double.valueOf(count) / Double.valueOf(gen); 
+        }
+        return result;
+        
     }
 }
 
@@ -239,113 +259,157 @@ class FitnessConfig{
         }
     }
 
-    public static double determineFitness(ModuleReturns[] output){
-        double result = 0;
-        result += Safety(output);
-        result += Livelyness(output);
-        result += SegFault(output);
-        result += Exception(output);
-        result += ExecutionTime(output);
-        result += IllegalOutput(output);
-        return FitnessConfig.LTLWeight * result;
+    public static FitnessResult determineFitness(ModuleReturns[] output){
+        FitnessResult res = new FitnessResult();
+        res = addFitnesses(res, Safety(output));
+        res = addFitnesses(res, Livelyness(output));
+        res = addFitnesses(res, SegFault(output));
+        res = addFitnesses(res, Exception(output));
+        res = addFitnesses(res, ExecutionTime(output));
+        res = addFitnesses(res, IllegalOutput(output));
+        res.val = FitnessConfig.LTLWeight * res.val;
+        return res;
     }
 
-    private static double Safety(ModuleReturns[] output){
+    private static FitnessResult addFitnesses(FitnessResult result, FitnessResult input){
+        result.val += input.val;
+        for(ModuleReturns moduleResults: input.moduleFailures.keySet()){
+            if(result.moduleFailures.containsKey(moduleResults)){
+                result.moduleFailures.replace(moduleResults, result.moduleFailures.get(moduleResults) + input.moduleFailures.get(moduleResults));
+            } else {
+                result.moduleFailures.put(moduleResults, input.moduleFailures.get(moduleResults));
+            }
+        }
+        return result;
+    }
+
+    private static FitnessResult Safety(ModuleReturns[] output){
         if(!Safety.enabled){
-            return 0;
+            return new FitnessResult();
         }
         double result = 0;
+        FitnessResult res = new FitnessResult();
         for(ModuleReturns moduleReturns: output){
             if(!(moduleReturns.stderr.isBlank() && moduleReturns.stderr.isEmpty())){
                 result += 1;
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
             }
             if(moduleReturns.stdout.toUpperCase().contains("EXCEPTION")){
                 result += 1;
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
             }
         }
-
-        return Safety.weight * result/(output.length * 2);
+        res.val = Safety.weight * result/(output.length * 2);
+        return res;
     }
 
-    private static double Livelyness(ModuleReturns[] output){
+    private static FitnessResult Livelyness(ModuleReturns[] output){
         if(!Livelyness.enabled)
-            return 0;
+            return new FitnessResult();
 
         double result = 0;
+        FitnessResult res = new FitnessResult();
         for(ModuleReturns moduleReturns: output){
             if(moduleReturns.exitValue != 0){
                 result += 1;
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
             }
         }
-
-        return Livelyness.weight * result / output.length;
+        res.val = Livelyness.weight * result / output.length;
+        return res;
     }
 
-    private static double SegFault(ModuleReturns[] output){
+    private static FitnessResult SegFault(ModuleReturns[] output){
         if(Safety.enabled)
-            return 0;
+            return new FitnessResult();
 
         if(!SegFault.enabled)
-            return 0;
+            return new FitnessResult();
 
         double result = 0;
+        FitnessResult res = new FitnessResult();
         for(ModuleReturns moduleReturns: output){
             if(moduleReturns.stderr.toLowerCase().contains("segfault") || moduleReturns.stderr.toLowerCase().contains("segmentation fault") || moduleReturns.exitValue == 139){
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
                 result += 1;
             }
         }
-        return SegFault.weight * result / output.length;
+        res.val = SegFault.weight * result / output.length;
+        return res;
     }
 
-    private static double Exception(ModuleReturns[] output){
+    private static FitnessResult Exception(ModuleReturns[] output){
         if(Safety.enabled)
-            return 0;
+            return new FitnessResult();
 
         if(!SegFault.enabled)
-            return 0;
+            return new FitnessResult();
 
         double result = 0;
+        FitnessResult res = new FitnessResult();
         for(ModuleReturns moduleReturns: output){
             if(moduleReturns.stdout.toLowerCase().contains("exception") || moduleReturns.stdout.toLowerCase().contains("exceptions")){
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
                 result += 1;
             } else if (moduleReturns.stderr.toLowerCase().contains("exception") || moduleReturns.stderr.toLowerCase().contains("exceptions")){
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
                 result += 1;
             }
         }
-        return Exceptions.weight * result / output.length;
+        res.val = Exceptions.weight * result / output.length;
+        return res;
     }
 
-    private static double ExecutionTime(ModuleReturns[] output){
+    private static FitnessResult ExecutionTime(ModuleReturns[] output){
         if(!ExecutionTime.enabled)
-            return 0;
+            return new FitnessResult();
 
         double result = 0;
+        FitnessResult res = new FitnessResult();
         for(ModuleReturns moduleReturns: output){
             if(moduleReturns.executionDuration > ExecutionTime.maxTime){
+                if(!res.moduleFailures.containsKey(moduleReturns))
+                    res.moduleFailures.put(moduleReturns, 1);
                 result += 1;
             }
         }
-        return ExecutionTime.weight * result / output.length;
+        res.val = ExecutionTime.weight * result / output.length;
+        return res;
     }
 
-    private static double IllegalOutput(ModuleReturns[] output){
+    private static FitnessResult IllegalOutput(ModuleReturns[] output){
         if(!IllegalOutput.enabled)
-            return 0;
+            return new FitnessResult();
 
         if(IllegalOutput.words.length <=0)
-            return 0;
+            return new FitnessResult();
 
         double result = 0;
+        FitnessResult res = new FitnessResult();
         for(ModuleReturns moduleReturns: output){
             for(String word: IllegalOutput.words){
                 if(moduleReturns.stdout.contains(word)){
+                    if(!res.moduleFailures.containsKey(moduleReturns))
+                        res.moduleFailures.put(moduleReturns, 1);
                     result += 1;
                 }
             }
         }
-        return IllegalOutput.weight * result / (IllegalOutput.words.length * output.length);
+        res.val = IllegalOutput.weight * result / (IllegalOutput.words.length * output.length);
+        return res;
     }
     
+}
+
+class FitnessResult{
+    double val = 0;
+    HashMap<ModuleReturns, Integer> moduleFailures = new HashMap<>();
 }
 
 class FitnessConfigField{
