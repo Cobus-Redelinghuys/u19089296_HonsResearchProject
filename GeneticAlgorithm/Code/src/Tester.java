@@ -45,5 +45,11 @@ public class Tester {
             System.out.println(mutationType.mutate(c1).toString());
         }
     }
+
+    public static void TestFitness(Chromosome[] population, int gen){
+        for(Chromosome chromosome: population){
+            System.out.println(chromosome.toString() + ": " + Fitness.determineFitness(chromosome, gen));
+        }
+    }
 }
 //

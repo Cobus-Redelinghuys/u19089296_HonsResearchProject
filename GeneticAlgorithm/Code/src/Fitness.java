@@ -22,14 +22,13 @@ public class Fitness {
             return 0;
         } 
 
-        for(ModuleReturns moduleReturns: output){
-            System.out.println(moduleReturns);
-        }
-
         double result = 0;
         FitnessResult resA = LTL(output);
         result += resA.val;
-        result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
+        if(resA.moduleFailures.size() <= 0)
+            result += Double.POSITIVE_INFINITY;
+        else 
+            result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
         result += FitnessConfig.GWeight*FitnessMemory.G(input, gen);
         return result;
     }
@@ -56,9 +55,9 @@ public class Fitness {
             if(process.exitValue() == 139)
                 result[1] += "Seg fault";
 
-            for(String res: result){
+            /*for(String res: result){
                 System.out.print(res);
-            }
+            }*/
         } catch (Exception e){
             e.printStackTrace();
         }
@@ -89,7 +88,7 @@ public class Fitness {
 
 }
 
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({"rawtypes"})
 class FitnessMemory{
     public static HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>> map;
 
