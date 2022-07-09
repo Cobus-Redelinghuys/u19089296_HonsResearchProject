@@ -33,6 +33,7 @@ public class App {
             else
                 System.out.println("stderr: " + res.get("stderr"));
             System.out.println("duration: " + res.get("duration"));
+            System.out.println("exit value: " + res.get("exitvalue"));
         }
     }
 }

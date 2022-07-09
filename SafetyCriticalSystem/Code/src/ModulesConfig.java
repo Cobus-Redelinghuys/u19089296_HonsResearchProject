@@ -104,6 +104,7 @@ class ModuleConfig{
         String args = "";
         LocalTime start = null;
         LocalTime end;
+        int exitValue = 0;
         for(String arg: inputs){
             args += arg + " ";
         }
@@ -135,6 +136,7 @@ class ModuleConfig{
             }
             if(process.exitValue() == 139)
                 result[1] += "Seg fault";
+            exitValue = process.exitValue();
         } catch (Exception e){
             result[1] += e.getMessage();
             e.printStackTrace();
@@ -144,6 +146,7 @@ class ModuleConfig{
         obj.put("stdout", result[0]);
         obj.put("stderr", result[1]);
         obj.put("duration", Duration.between(start, end).toMillis());
+        obj.put("exitvalue", exitValue);
         return obj;
     }
 }

@@ -1,1 +1,1 @@
-[{"duration":42,"stdout":"GreaterThan\n","stderr":""},{"duration":16,"stdout":"Inbetween boundaries\n","stderr":""}]
+[{"duration":43,"stdout":"","exitvalue":139,"stderr":"Seg fault"},{"duration":9,"stdout":"Inbetween boundaries\n","exitvalue":0,"stderr":""}]
