@@ -13,6 +13,13 @@
             "relativePath" : "./modules/Module2/Module2",
             "executionCommand" : "",
             "numberOfCLArguments" : 1
+        },
+        {
+            "moduleName" : "module3",
+            "enabled" : true,
+            "relativePath" : "./modules/Module2/Module3",
+            "executionCommand" : "",
+            "numberOfCLArguments" : 1
         }
     ]
 }
