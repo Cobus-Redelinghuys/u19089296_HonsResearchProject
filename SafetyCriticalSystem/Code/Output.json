@@ -1,1 +1,1 @@
-[{"duration":43,"stdout":"","exitvalue":139,"stderr":"Seg fault"},{"duration":9,"stdout":"Inbetween boundaries\n","exitvalue":0,"stderr":""}]
+[{"duration":33,"stdout":"","exitvalue":139,"stderr":"Seg fault"},{"duration":9,"stdout":"Inbetween boundaries\n","exitvalue":0,"stderr":""},{"duration":9,"stdout":"Inbetween boundaries\n","exitvalue":0,"stderr":""},{"duration":245,"stdout":"","exitvalue":1,"stderr":"Exception in thread \"main\" java.lang.ArrayIndexOutOfBoundsException: Index 10 out of bounds for length 10\n\tat Main.main(Main.java:29)\n"}]
