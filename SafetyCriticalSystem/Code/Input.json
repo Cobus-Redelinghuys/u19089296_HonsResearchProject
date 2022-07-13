@@ -1,4 +1,6 @@
 {
-    "module1" : 1,
-    "module2" : 5
+    "module1" : 3,
+    "module2" : 5,
+    "module3" : 5,
+    "module4" : 10
 }

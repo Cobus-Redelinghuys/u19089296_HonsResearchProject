@@ -13,6 +13,20 @@
             "relativePath" : "./modules/Module2/Module2",
             "executionCommand" : "",
             "numberOfCLArguments" : 1
+        },
+        {
+            "moduleName" : "module3",
+            "enabled" : true,
+            "relativePath" : "./modules/Module3/Module3",
+            "executionCommand" : "",
+            "numberOfCLArguments" : 1
+        },
+        {
+            "moduleName" : "module4",
+            "enabled" : true,
+            "relativePath" : "./modules/Module4/Module4.jar",
+            "executionCommand" : "java -jar ",
+            "numberOfCLArguments" : 1
         }
     ]
 }
