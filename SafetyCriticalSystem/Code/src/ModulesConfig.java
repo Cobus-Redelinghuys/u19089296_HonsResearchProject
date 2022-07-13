@@ -106,6 +106,9 @@ class ModuleConfig{
         LocalTime end;
         int exitValue = 0;
         for(String arg: inputs){
+            if(moduleName.equals("module5")){
+                arg = Long.toBinaryString(Double.doubleToRawLongBits(Double.parseDouble(arg)));
+            }
             args += arg + " ";
         }
         try{
