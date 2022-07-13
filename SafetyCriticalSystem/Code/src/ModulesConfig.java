@@ -122,21 +122,18 @@ class ModuleConfig{
             result[0] = "";
             result[1] = "";
             int n1;
+            ProcessMonitor processMonitor = new ProcessMonitor(process, start);
+            processMonitor.start();
             while((n1 = isr.read()) > 0){
                 result[0] += (char)n1; 
             }
             while((n1 = esr.read()) > 0){
-                System.out.println(n1);
                 result[1] += (char)n1;
             }
-            while(process.isAlive()){
-                LocalTime temp = LocalTime.now();
-                if(Math.abs(Duration.between(temp, start).toMillis()) > 30000){
-                    process.destroyForcibly();
-                    result[1] += "Infinite Loop";
-                    break;  
-                }
-            }
+            while(process.isAlive()){}
+            processMonitor.join();
+            if(processMonitor.infiniteLoop)
+                result[1] += "Infinite loop";
             if(process.exitValue() == 139)
                 result[1] += "Seg fault";
             exitValue = process.exitValue();
@@ -199,6 +196,29 @@ class Input{
         @Override
         public String toString() {
             return "Incorrect input for module: " + errorModule.moduleName;
+        }
+    }
+}
+
+class ProcessMonitor extends Thread{
+    private Process module;
+    private LocalTime start;
+    public boolean infiniteLoop = false;
+
+    public ProcessMonitor(Process module, LocalTime start){
+        this.module = module;
+        this.start = start;
+    }
+
+    @Override
+    public void run() {
+        while(module.isAlive()){
+            LocalTime temp = LocalTime.now();
+            if(Math.abs(Duration.between(temp, start).toMillis()) > 30000){
+                module.destroyForcibly();
+                infiniteLoop = true;
+                break;  
+            }
         }
     }
 }
