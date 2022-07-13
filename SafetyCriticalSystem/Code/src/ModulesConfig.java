@@ -107,7 +107,7 @@ class ModuleConfig{
         int exitValue = 0;
         for(String arg: inputs){
             if(moduleName.equals("module5")){
-                arg = Long.toBinaryString(Double.doubleToRawLongBits(Double.parseDouble(arg)));
+                arg = Long.toBinaryString(Long.parseLong(arg));
             }
             args += arg + " ";
         }
