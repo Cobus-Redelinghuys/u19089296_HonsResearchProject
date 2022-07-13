@@ -55,6 +55,14 @@ public class Chromosome {
         return res;
     }
 
+    public static Chromosome mutate(Chromosome c){
+        Chromosome res = GeneticAlgorithmConfig.mutationType.mutate(c);
+        while((!validateChromosome(res))){
+            res = GeneticAlgorithmConfig.mutationType.mutate(c);
+        }
+        return res;
+    }
+
     @SuppressWarnings("unchecked")
     public static boolean validateChromosome(Chromosome c){
         try{
