@@ -12,8 +12,7 @@ public class App {
             }
         } else {
             GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm();
-            System.out.println(geneticAlgorithm.variance());
-            Tester.TestFitness(geneticAlgorithm.population, 1);
+            geneticAlgorithm.runAlgorithm();
         }
     }
 
