@@ -23,6 +23,8 @@ public class GeneticAlgorithm {
             replacementMap.put(chromosome, chromosome);
         }
         ArrayList<Chromosome>[] selected = tournamentSelection(gen);
+        //TODO: Remove this
+        System.out.println("Finished selecting: " + gen);
         for(int i=0; i < GeneticAlgorithmConfig.selectionSize; i++){
             if(GeneticAlgorithmConfig.crossoverProp < GeneticAlgorithmConfig.nextDouble(1.0) && i+1 < selected.length){
                 Chromosome[] offspring = GeneticAlgorithmConfig.crossOverType.crossOver(selected[0].get(i), selected[0].get(i+1));
