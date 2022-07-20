@@ -1,4 +1,5 @@
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -27,7 +28,10 @@ public class Fitness {
             result += Double.POSITIVE_INFINITY;
         else 
             result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
-        result += FitnessConfig.GWeight*FitnessMemory.G(input, gen);
+        if(resA.moduleFailures.size() != 0)
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true);
+        else
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false);
         return result;
     }
 
@@ -88,32 +92,75 @@ public class Fitness {
 
 @SuppressWarnings({"rawtypes"})
 class FitnessMemory{
-    public static HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>> map;
+    private static HashMap<GeneConfig,HashMap<String,HashMap<Boolean,ArrayList<String>>>> database;
 
     static{
-        map = new HashMap<>();
+        database = new HashMap<>();
         for(GeneConfig geneConfig: ChromosomeConfig.geneConfigs){
-            map.put(geneConfig, new HashMap<>());
+            HashMap<String,HashMap<Boolean,ArrayList<String>>> geneTable = new HashMap<>();
+            database.put(geneConfig, geneTable);
         }
     }
 
-    public static double G(Chromosome x, int gen){
-        if(gen <= 0)
-            return 0;
+    static double G(Chromosome x, int gen, boolean failed){
+        HashMap<GeneConfig,Integer> geneCount = new HashMap<>();
+        for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
+            HashMap<String, HashMap<Boolean,ArrayList<String>>> geneTable = database.get(ChromosomeConfig.geneConfigs[i]);
+            String geneStr = x.convertFromBin()[i].toString();
+            if(geneTable.containsKey(geneStr)){
+                geneTable.get(geneStr).get(failed).add(x.toString());
+            } else {
+                HashMap<Boolean,ArrayList<String>> failureTable = new HashMap<>();
+                failureTable.put(true, new ArrayList<>());
+                failureTable.put(false, new ArrayList<>());
+                geneTable.put(geneStr, failureTable);
+                geneTable.get(geneStr).get(failed).add(x.toString());
+            }
+            geneCount.put(ChromosomeConfig.geneConfigs[i], geneTable.get(geneStr).get(true).size());
+        }
 
         double result = 0;
-        for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
-            int count = 0;
-            HashMap<String, ArrayList<Chromosome>> innerMap = map.get(ChromosomeConfig.geneConfigs[i]);
-            if(innerMap.containsKey(x.convertFromBin()[i].toString())){
-                count = innerMap.get(x.convertFromBin()[i].toString()).size();
-            } else {
-                innerMap.put(x.convertFromBin()[i].toString(), new ArrayList<>());
-            }
-            result += Double.valueOf(count) / Double.valueOf(gen); 
+        for(Integer count: geneCount.values()){
+            result += (double)count / (double)gen;
         }
         return result;
-        
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void jsonSummary(){
+        JSONArray geneTypes = new JSONArray();
+        for(GeneConfig geneConfig: database.keySet()){
+            int index = ChromosomeConfig.indexOfGeneConfig(geneConfig);
+            JSONObject geneInfo = new JSONObject();
+            JSONArray subGeneInfo = new JSONArray();
+            for(String geneStr: database.get(geneConfig).keySet()){
+                JSONObject subGene = new JSONObject();
+                subGene.put("gene str", geneStr);
+                subGene.put("gene value", geneConfig.convertFromBin(geneStr));
+                for(Boolean failure: database.get(geneConfig).get(geneStr).keySet()){
+                    JSONObject failureInfo = new JSONObject();
+                    failureInfo.put("failure", failure);
+                    JSONArray chroms = new JSONArray();
+                    for(String c: database.get(geneConfig).get(geneStr).get(failure)){
+                        chroms.add(c);
+                    }
+                    failureInfo.put("chromosomes", chroms.toJSONString());
+                    subGene.put("failure info", failureInfo.toJSONString());
+                }
+                subGeneInfo.add(subGene.toJSONString());
+            }
+            geneInfo.put("gene number", index);
+            geneInfo.put("gene type", geneConfig.dataType.getName());
+            geneTypes.add(geneInfo.toJSONString());
+        }
+
+        try(FileWriter file = new FileWriter("DatabaseSummary.json")){
+            String jsonString = geneTypes.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
 

@@ -13,6 +13,7 @@ public class App {
         } else {
             GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm();
             geneticAlgorithm.runAlgorithm();
+            
         }
     }
 

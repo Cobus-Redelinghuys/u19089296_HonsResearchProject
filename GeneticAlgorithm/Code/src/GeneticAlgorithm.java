@@ -121,4 +121,8 @@ public class GeneticAlgorithm {
         }
         return Math.sqrt(sum/totalFitnesses[gen].size());
     }
+
+    public void printDatabase(){
+        FitnessMemory.jsonSummary();
+    }
 }
