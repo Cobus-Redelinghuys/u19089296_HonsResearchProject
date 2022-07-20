@@ -123,7 +123,7 @@ class FitnessMemory{
         for(Integer count: geneCount.values()){
             result += (double)count / (double)gen;
         }
-        return result;
+        return result/geneCount.size();
     }
 
     @SuppressWarnings("unchecked")
@@ -135,8 +135,12 @@ class FitnessMemory{
             JSONArray subGeneInfo = new JSONArray();
             for(String geneStr: database.get(geneConfig).keySet()){
                 JSONObject subGene = new JSONObject();
-                subGene.put("gene str", geneStr);
-                subGene.put("gene value", geneConfig.convertFromBin(geneStr));
+                try{
+                    subGene.put("gene value", geneStr);
+                }catch(Exception e){
+                    e.printStackTrace();
+                    subGene.put("gene value", "error occured");
+                }
                 for(Boolean failure: database.get(geneConfig).get(geneStr).keySet()){
                     JSONObject failureInfo = new JSONObject();
                     failureInfo.put("failure", failure);
@@ -144,14 +148,15 @@ class FitnessMemory{
                     for(String c: database.get(geneConfig).get(geneStr).get(failure)){
                         chroms.add(c);
                     }
-                    failureInfo.put("chromosomes", chroms.toJSONString());
-                    subGene.put("failure info", failureInfo.toJSONString());
+                    failureInfo.put("chromosomes", chroms);
+                    subGene.put("failure info", failureInfo);
                 }
-                subGeneInfo.add(subGene.toJSONString());
+                subGeneInfo.add(subGene);
             }
+            geneInfo.put("gene info", subGeneInfo);
             geneInfo.put("gene number", index);
-            geneInfo.put("gene type", geneConfig.dataType.getName());
-            geneTypes.add(geneInfo.toJSONString());
+            geneInfo.put("gene type", geneConfig.geneDataType.name());
+            geneTypes.add(geneInfo);
         }
 
         try(FileWriter file = new FileWriter("DatabaseSummary.json")){
