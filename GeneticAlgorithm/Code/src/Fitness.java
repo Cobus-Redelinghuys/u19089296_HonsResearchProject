@@ -24,14 +24,14 @@ public class Fitness {
         double result = 0;
         FitnessResult resA = LTL(output);
         result += resA.val;
-        if(resA.moduleFailures.size() <= 0)
+        if(resA.moduleFailures.size() <= 0){
             result += Double.POSITIVE_INFINITY;
-        else 
-            result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
-        if(resA.moduleFailures.size() != 0)
-            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true);
-        else
             result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false);
+        }
+        else {
+            result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true);
+        }            
         return result;
     }
 
@@ -146,6 +146,10 @@ class FitnessMemory{
                     failureInfo.put("failure", failure);
                     JSONArray chroms = new JSONArray();
                     for(String c: database.get(geneConfig).get(geneStr).get(failure)){
+                        //TODO: remove this
+                        //TODO: Try and find out why false is not printed.
+                        if(failure == false)
+                            System.out.println("is false");
                         chroms.add(c);
                     }
                     failureInfo.put("chromosomes", chroms);
