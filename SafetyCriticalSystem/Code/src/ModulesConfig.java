@@ -35,9 +35,23 @@ public class ModulesConfig {
     @SuppressWarnings("unchecked")
     public static JSONArray executeSystem(Input input){
         JSONArray result = new JSONArray();
-        for(int i=0; i < moduleConfigs.length; i++){
+        /*for(int i=0; i < moduleConfigs.length; i++){
             result.add(moduleConfigs[i].executeModule(input.moduleInputs.get(moduleConfigs[i].moduleName)));
+        }*/
+        ModuleRunner[] moduleRunners = new ModuleRunner[moduleConfigs.length];
+        for(int i=0; i < moduleRunners.length; i++){
+            moduleRunners[i] = new ModuleRunner(moduleConfigs[i], input.moduleInputs.get(moduleConfigs[i].moduleName));
+            moduleRunners[i].start();
         }
+        try{
+            for(int i=0; i < moduleRunners.length; i++){
+                moduleRunners[i].join();
+                result.add(moduleRunners[i].getResults());
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
         return result;
     }
 
@@ -220,5 +234,25 @@ class ProcessMonitor extends Thread{
                 break;  
             }
         }
+    }
+}
+
+class ModuleRunner extends Thread{
+    private ModuleConfig moduleConfig;
+    private ArrayList<String> inputs;
+    private JSONObject result = null;
+
+    public ModuleRunner(ModuleConfig moduleConfig, ArrayList<String> inputs){
+        this.moduleConfig = moduleConfig;
+        this.inputs = inputs;
+    }
+
+    @Override
+    public void run() {
+        result = moduleConfig.executeModule(inputs);
+    }
+
+    public JSONObject getResults(){
+        return result;
     }
 }
