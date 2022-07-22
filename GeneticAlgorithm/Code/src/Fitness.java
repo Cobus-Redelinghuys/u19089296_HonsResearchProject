@@ -1,9 +1,11 @@
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.UUID;
 
 import org.json.simple.JSONArray;
@@ -129,7 +131,6 @@ class FitnessMemory{
 
     @SuppressWarnings("unchecked")
     public static void jsonSummary(){
-        UUID Errid = null;
         JSONArray geneTypes = new JSONArray();
         for(GeneConfig geneConfig: database.keySet()){
             int index = ChromosomeConfig.indexOfGeneConfig(geneConfig);
@@ -219,6 +220,7 @@ class FitnessConfig{
     public static final FitnessConfigField Exceptions;
     public static final ExecutionTimeField ExecutionTime;
     public static final IllegalOutputField IllegalOutput;
+    public static final ExpectedOutputField ExpectedOutput;
     public static final double LTLWeight;
     public static final double GWeight;
     public static final double MWeight;
@@ -288,6 +290,15 @@ class FitnessConfig{
         }
 
         try{
+            res = new ExpectedOutputField((JSONObject)jsonObject.get("ExpectedOutput"));
+        } catch (Exception e){
+            e.printStackTrace();
+            res = new ExpectedOutputField();
+        } finally{
+            ExpectedOutput = (ExpectedOutputField)res;
+        }
+
+        try{
             res = (Double)jsonObject.get("LTLWeight");
         } catch(Exception e){
             e.printStackTrace();
@@ -323,6 +334,7 @@ class FitnessConfig{
         res = addFitnesses(res, Exception(output));
         res = addFitnesses(res, ExecutionTime(output));
         res = addFitnesses(res, IllegalOutput(output));
+        res = addFitnesses(res, ExpectedOutput(output));
         res.val = FitnessConfig.LTLWeight * res.val;
         return res;
     }
@@ -460,6 +472,19 @@ class FitnessConfig{
         res.val = IllegalOutput.weight * result / (IllegalOutput.words.length * output.length);
         return res;
     }
+
+    private static FitnessResult ExpectedOutput(ModuleReturns[] output){
+        if(!ExpectedOutput.enabled)
+            return new FitnessResult();
+        FitnessResult res = null;
+        if(ExpectedOutput.constantExpected)
+            res = ExpectedOutput.constantExpected(output);
+        else 
+            res = ExpectedOutput.constantExpected(output);
+
+        res.val = ExpectedOutput.weight * res.val / output.length;
+        return res;
+    }
     
 }
 
@@ -536,6 +561,121 @@ class ExecutionTimeField{
         enabled = false;
         weight = Double.NaN;
         maxTime = 0;
+    }
+
+}
+
+class ExpectedOutputField{
+    public final boolean enabled;
+    public final double weight;
+    public final boolean constantExpected;
+    public final boolean exactMatch;
+    public final String filePath;
+    private String[] fileContent;
+
+    public ExpectedOutputField(JSONObject jsonObject) throws MalformedFitnessConfig{
+        try{
+            enabled = (Boolean)jsonObject.get("enabled");
+            weight = ((Long)jsonObject.get("weight")).doubleValue();
+            constantExpected = (Boolean)jsonObject.get("constantExpected");
+            exactMatch = (Boolean)jsonObject.get("exactMatch");
+            filePath = (String)jsonObject.get("filePath");
+            if(!constantExpected){
+                fileContent = readExpectedOutput();
+            }
+        
+        } catch(Exception e){
+            e.printStackTrace();
+            throw new MalformedFitnessConfig();
+        }
+    }
+
+    private String[] readExpectedOutput() throws MalformedFitnessConfig{
+        try{
+            ArrayList<String> content = new ArrayList<>();
+            File myObj = new File(filePath);
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                content.add(data);
+            }
+            myReader.close();   
+            return content.toArray(new String[0]);
+        } catch(Exception e){
+            e.printStackTrace();
+            throw new MalformedFitnessConfig();
+        }
+    }
+
+    public ExpectedOutputField(){
+        enabled = false;
+        weight = 0;
+        constantExpected = false;
+        exactMatch = false;
+        filePath = "";
+    }
+
+    public FitnessResult constantExpected(ModuleReturns[] output){
+        FitnessResult res = new FitnessResult();
+        int matched = 0;
+        int possibles = 0;
+        for(ModuleReturns moduleReturns: output){
+            if(exactMatch){
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.equals(str)){
+                        matched++;
+                    } else {
+                        if(res.moduleFailures.containsKey(moduleReturns)){
+                            res.moduleFailures.replace(moduleReturns, res.moduleFailures.get(moduleReturns)+1);
+                        } else {
+                            res.moduleFailures.put(moduleReturns, 1);
+                        }
+                    }
+                    possibles++;
+                }
+            } else {
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.contains(str)){
+                        matched++;
+                    }
+                    possibles++;
+                }
+            }
+        }
+        res.val = (double)matched/(double)possibles;
+        return res;
+    }
+
+    public FitnessResult dynamicExpected(ModuleReturns[] output) throws MalformedFitnessConfig{
+        FitnessResult res = new FitnessResult();
+        int matched = 0;
+        int possibles = 0;
+        fileContent = readExpectedOutput();
+        for(ModuleReturns moduleReturns: output){
+            if(exactMatch){
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.equals(str)){
+                        matched++;
+                    } else {
+                        if(res.moduleFailures.containsKey(moduleReturns)){
+                            res.moduleFailures.replace(moduleReturns, res.moduleFailures.get(moduleReturns)+1);
+                        } else {
+                            res.moduleFailures.put(moduleReturns, 1);
+                        }
+                    }
+                    possibles++;
+                }
+            } else {
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.contains(str)){
+                        matched++;
+                    }
+                    possibles++;
+                }
+            }
+        }
+        res.val = (double)matched/(double)possibles;
+        return res;
     }
 
 }
