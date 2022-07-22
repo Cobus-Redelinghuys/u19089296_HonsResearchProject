@@ -124,4 +124,8 @@ public class GeneticAlgorithm {
     public void printDatabase(){
         FitnessMemory.jsonSummary();
     }
+
+    public void DBAnalysis(){
+        FitnessMemory.DBAnalysis();
+    }
 }

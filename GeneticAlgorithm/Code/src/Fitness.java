@@ -175,6 +175,34 @@ class FitnessMemory{
             e.printStackTrace();
         }
     }
+
+    @SuppressWarnings("unchecked")
+    public static void DBAnalysis(){
+        ArrayList<String>[] possibleErrorValues = new ArrayList[ChromosomeConfig.geneConfigs.length];
+        
+        for(GeneConfig geneConfig : database.keySet()){
+            ArrayList<String> possibleValues = new ArrayList<>();
+            for(String value: database.get(geneConfig).keySet()){
+                if(database.get(geneConfig).get(value).get(false).size() == 0){
+                    possibleValues.add(value);
+                }
+            }
+            possibleErrorValues[ChromosomeConfig.indexOfGeneConfig(geneConfig)] = possibleValues;
+        }
+        
+        for(int i=0; i < possibleErrorValues.length; i++){
+            System.out.println("Possible error values for gene: " + i);
+            if(possibleErrorValues[i].size() == 0){
+                System.out.println("No error values were able to be found");
+            } else {
+                for(String val: possibleErrorValues[i]){
+                    System.out.println(val);
+                }
+            }
+            System.out.println();
+        }
+    
+    }
 }
 
 class ModuleReturns{
