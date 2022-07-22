@@ -5,7 +5,7 @@
     "mutationType":"BitWisInversion",
     "selectionSize":10,
     "populationSize":100,
-    "numGenerations":100,
+    "numGenerations":2,
     "crossOverType":"OnePointCrossOver",
     "mutationProp":0.5,
     "nCrossOver":5,

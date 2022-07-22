@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -128,6 +129,7 @@ class FitnessMemory{
 
     @SuppressWarnings("unchecked")
     public static void jsonSummary(){
+        UUID Errid = null;
         JSONArray geneTypes = new JSONArray();
         for(GeneConfig geneConfig: database.keySet()){
             int index = ChromosomeConfig.indexOfGeneConfig(geneConfig);
@@ -141,20 +143,21 @@ class FitnessMemory{
                     e.printStackTrace();
                     subGene.put("gene value", "error occured");
                 }
+                JSONArray failureArray = new JSONArray();
                 for(Boolean failure: database.get(geneConfig).get(geneStr).keySet()){
                     JSONObject failureInfo = new JSONObject();
+                    UUID id = UUID.randomUUID();
+                    failureInfo.put("ID", id.toString());
                     failureInfo.put("failure", failure);
                     JSONArray chroms = new JSONArray();
                     for(String c: database.get(geneConfig).get(geneStr).get(failure)){
-                        //TODO: remove this
-                        //TODO: Try and find out why false is not printed.
-                        if(failure == false)
-                            System.out.println("is false");
-                        chroms.add(c);
+                        if(!chroms.contains(c))
+                            chroms.add(c);
                     }
                     failureInfo.put("chromosomes", chroms);
-                    subGene.put("failure info", failureInfo);
+                    failureArray.add(failureInfo);
                 }
+                subGene.put("failure info", failureArray);
                 subGeneInfo.add(subGene);
             }
             geneInfo.put("gene info", subGeneInfo);
