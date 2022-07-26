@@ -29,11 +29,12 @@ public class Fitness {
         result += resA.val;
         if(resA.moduleFailures.size() <= 0){
             result += Double.POSITIVE_INFINITY;
-            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false);
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false, resA.val, Double.POSITIVE_INFINITY);
         }
         else {
-            result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
-            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true);
+            double m = FitnessConfig.MWeight*(1 / resA.moduleFailures.size()); 
+            result += m;
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
         }            
         return result;
     }
@@ -105,7 +106,7 @@ class FitnessMemory{
         }
     }
 
-    static double G(Chromosome x, int gen, boolean failed){
+    static double G(Chromosome x, int gen, boolean failed, double ltl, double m){
         HashMap<GeneConfig,Integer> geneCount = new HashMap<>();
         for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
             HashMap<String, HashMap<Boolean,ArrayList<String>>> geneTable = database.get(ChromosomeConfig.geneConfigs[i]);
