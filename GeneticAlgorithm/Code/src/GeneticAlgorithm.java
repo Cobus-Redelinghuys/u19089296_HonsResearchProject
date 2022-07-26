@@ -38,8 +38,12 @@ public class GeneticAlgorithm {
         }
         population = replacementMap.values().toArray(new Chromosome[0]);
         System.out.println("Generation: " + gen);
-        System.out.println("Average: " + calculateAverage(gen));
-        System.out.println("Std: " + calculateStd(gen));
+        Double[] arr = calculateAverage(gen);
+        System.out.println("Average inf: " + arr[0]);
+        System.out.println("Average: " + arr[1]);
+        arr = calculateStd(gen);
+        System.out.println("Std inf: " + arr[0]);
+        System.out.println("Std: " + arr[1]);
         System.out.println("Variance: " + variance());
     }
 
@@ -104,21 +108,38 @@ public class GeneticAlgorithm {
         return res;
     }
 
-    private double calculateAverage(int gen){
+    private Double[] calculateAverage(int gen){
         double sum = 0;
+        double sumInf = 0;
+        int count = 0;
         for(double v: totalFitnesses[gen]){
-            sum += v;
+            sumInf += v;
+            if(Double.isFinite(v)){
+                sum += v;
+            }
         }
-        return sum/totalFitnesses[gen].size();
+        Double[] arr = new Double[2];
+        arr[0] = sumInf/totalFitnesses[gen].size();;
+        arr[1] = sum/count;
+        return arr;
     }
 
-    private double calculateStd(int gen){
-        double avg = calculateAverage(gen);
+    private Double[] calculateStd(int gen){
+        Double[] avg = calculateAverage(gen);
         double sum = 0;
+        int count = 0;
+        double sumInf = 0;
         for(double v: totalFitnesses[gen]){
-            sum = Math.pow(v-avg, 2);
+            sumInf = Math.pow(v-avg[0], 2);
+            if(Double.isFinite(v)){
+                sum = Math.pow(v-avg[1], 2);
+                count++;
+            } 
         }
-        return Math.sqrt(sum/totalFitnesses[gen].size());
+        Double[] arr = new Double[2];
+        arr[0] = Math.sqrt(sumInf/totalFitnesses[gen].size());
+        arr[1] = Math.sqrt(sum/count);
+        return arr;
     }
 
     public void printDatabase(){
