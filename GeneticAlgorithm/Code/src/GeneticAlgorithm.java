@@ -114,7 +114,7 @@ public class GeneticAlgorithm {
         int count = 0;
         for(double v: totalFitnesses[gen]){
             sumInf += v;
-            if(Double.isFinite(v)){
+            if(Double.isFinite(v) && !Double.isNaN(v)){
                 sum += v;
             }
         }
@@ -131,7 +131,7 @@ public class GeneticAlgorithm {
         double sumInf = 0;
         for(double v: totalFitnesses[gen]){
             sumInf = Math.pow(v-avg[0], 2);
-            if(Double.isFinite(v)){
+            if(Double.isFinite(v) && !Double.isNaN(v)){
                 sum = Math.pow(v-avg[1], 2);
                 count++;
             } 
