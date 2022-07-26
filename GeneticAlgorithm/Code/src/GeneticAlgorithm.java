@@ -116,11 +116,15 @@ public class GeneticAlgorithm {
             sumInf += v;
             if(Double.isFinite(v) && !Double.isNaN(v)){
                 sum += v;
+                count++;
             }
         }
         Double[] arr = new Double[2];
-        arr[0] = sumInf/totalFitnesses[gen].size();;
-        arr[1] = sum/count;
+        arr[0] = sumInf/totalFitnesses[gen].size();
+        if(count != 0)
+            arr[1] = sum/count;
+        else 
+            arr[1] = 0.0;
         return arr;
     }
 
@@ -138,7 +142,10 @@ public class GeneticAlgorithm {
         }
         Double[] arr = new Double[2];
         arr[0] = Math.sqrt(sumInf/totalFitnesses[gen].size());
-        arr[1] = Math.sqrt(sum/count);
+        if(count != 0)
+            arr[1] = Math.sqrt(sum/count);
+        else 
+            arr[1] = 0.0;
         return arr;
     }
 
