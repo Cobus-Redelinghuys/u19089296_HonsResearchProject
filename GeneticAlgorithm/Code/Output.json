@@ -1,1 +1,1 @@
-[{"duration":42,"stdout":"GreaterThan\n","stderr":""},{"duration":16,"stdout":"Inbetween boundaries\n","stderr":""}]
+[{"duration":65,"stdout":"LessThan\n","exitvalue":0,"stderr":""},{"duration":70,"stdout":"Inbetween boundaries\n","exitvalue":0,"stderr":""},{"duration":67,"stdout":"Inbetween boundaries\n","exitvalue":0,"stderr":""},{"duration":224,"stdout":"9\n","exitvalue":0,"stderr":""},{"duration":224,"stdout":"1001\n","exitvalue":0,"stderr":""}]

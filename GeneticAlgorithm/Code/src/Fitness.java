@@ -1,8 +1,12 @@
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Scanner;
+import java.util.UUID;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,11 +27,15 @@ public class Fitness {
         double result = 0;
         FitnessResult resA = LTL(output);
         result += resA.val;
-        if(resA.moduleFailures.size() <= 0)
+        if(resA.moduleFailures.size() <= 0){
             result += Double.POSITIVE_INFINITY;
-        else 
-            result += FitnessConfig.MWeight*(1 / resA.moduleFailures.size());
-        result += FitnessConfig.GWeight*FitnessMemory.G(input, gen);
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false, resA.val, Double.POSITIVE_INFINITY);
+        }
+        else {
+            double m = FitnessConfig.MWeight*(1 / resA.moduleFailures.size()); 
+            result += m;
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
+        }            
         return result;
     }
 
@@ -88,32 +96,113 @@ public class Fitness {
 
 @SuppressWarnings({"rawtypes"})
 class FitnessMemory{
-    public static HashMap<GeneConfig, HashMap<String, ArrayList<Chromosome>>> map;
+    private static HashMap<GeneConfig,HashMap<String,HashMap<Boolean,ArrayList<String>>>> database;
 
     static{
-        map = new HashMap<>();
+        database = new HashMap<>();
         for(GeneConfig geneConfig: ChromosomeConfig.geneConfigs){
-            map.put(geneConfig, new HashMap<>());
+            HashMap<String,HashMap<Boolean,ArrayList<String>>> geneTable = new HashMap<>();
+            database.put(geneConfig, geneTable);
         }
     }
 
-    public static double G(Chromosome x, int gen){
-        if(gen <= 0)
-            return 0;
+    static double G(Chromosome x, int gen, boolean failed, double ltl, double m){
+        HashMap<GeneConfig,Integer> geneCount = new HashMap<>();
+        for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
+            HashMap<String, HashMap<Boolean,ArrayList<String>>> geneTable = database.get(ChromosomeConfig.geneConfigs[i]);
+            String geneStr = x.convertFromBin()[i].toString();
+            if(geneTable.containsKey(geneStr)){
+                geneTable.get(geneStr).get(failed).add(x.toString());
+            } else {
+                HashMap<Boolean,ArrayList<String>> failureTable = new HashMap<>();
+                failureTable.put(true, new ArrayList<>());
+                failureTable.put(false, new ArrayList<>());
+                geneTable.put(geneStr, failureTable);
+                geneTable.get(geneStr).get(failed).add(x.toString());
+            }
+            geneCount.put(ChromosomeConfig.geneConfigs[i], geneTable.get(geneStr).get(true).size());
+        }
 
         double result = 0;
-        for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
-            int count = 0;
-            HashMap<String, ArrayList<Chromosome>> innerMap = map.get(ChromosomeConfig.geneConfigs[i]);
-            if(innerMap.containsKey(x.convertFromBin()[i].toString())){
-                count = innerMap.get(x.convertFromBin()[i].toString()).size();
-            } else {
-                innerMap.put(x.convertFromBin()[i].toString(), new ArrayList<>());
-            }
-            result += Double.valueOf(count) / Double.valueOf(gen); 
+        for(Integer count: geneCount.values()){
+            result += (double)count / (double)gen;
         }
-        return result;
+        return result/geneCount.size();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void jsonSummary(){
+        JSONArray geneTypes = new JSONArray();
+        for(GeneConfig geneConfig: database.keySet()){
+            int index = ChromosomeConfig.indexOfGeneConfig(geneConfig);
+            JSONObject geneInfo = new JSONObject();
+            JSONArray subGeneInfo = new JSONArray();
+            for(String geneStr: database.get(geneConfig).keySet()){
+                JSONObject subGene = new JSONObject();
+                try{
+                    subGene.put("gene value", geneStr);
+                }catch(Exception e){
+                    e.printStackTrace();
+                    subGene.put("gene value", "error occured");
+                }
+                JSONArray failureArray = new JSONArray();
+                for(Boolean failure: database.get(geneConfig).get(geneStr).keySet()){
+                    JSONObject failureInfo = new JSONObject();
+                    UUID id = UUID.randomUUID();
+                    failureInfo.put("ID", id.toString());
+                    failureInfo.put("failure", failure);
+                    JSONArray chroms = new JSONArray();
+                    for(String c: database.get(geneConfig).get(geneStr).get(failure)){
+                        if(!chroms.contains(c))
+                            chroms.add(c);
+                    }
+                    failureInfo.put("chromosomes", chroms);
+                    failureArray.add(failureInfo);
+                }
+                subGene.put("failure info", failureArray);
+                subGeneInfo.add(subGene);
+            }
+            geneInfo.put("gene info", subGeneInfo);
+            geneInfo.put("gene number", index);
+            geneInfo.put("gene type", geneConfig.geneDataType.name());
+            geneTypes.add(geneInfo);
+        }
+
+        try(FileWriter file = new FileWriter("DatabaseSummary.json")){
+            String jsonString = geneTypes.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void DBAnalysis(){
+        ArrayList<String>[] possibleErrorValues = new ArrayList[ChromosomeConfig.geneConfigs.length];
         
+        for(GeneConfig geneConfig : database.keySet()){
+            ArrayList<String> possibleValues = new ArrayList<>();
+            for(String value: database.get(geneConfig).keySet()){
+                if(database.get(geneConfig).get(value).get(false).size() == 0){
+                    possibleValues.add(value);
+                }
+            }
+            possibleErrorValues[ChromosomeConfig.indexOfGeneConfig(geneConfig)] = possibleValues;
+        }
+        
+        for(int i=0; i < possibleErrorValues.length; i++){
+            System.out.println("Possible error values for gene: " + i);
+            if(possibleErrorValues[i].size() == 0){
+                System.out.println("No error values were able to be found");
+            } else {
+                for(String val: possibleErrorValues[i]){
+                    System.out.println(val);
+                }
+            }
+            System.out.println();
+        }
+    
     }
 }
 
@@ -160,6 +249,7 @@ class FitnessConfig{
     public static final FitnessConfigField Exceptions;
     public static final ExecutionTimeField ExecutionTime;
     public static final IllegalOutputField IllegalOutput;
+    public static final ExpectedOutputField ExpectedOutput;
     public static final double LTLWeight;
     public static final double GWeight;
     public static final double MWeight;
@@ -229,6 +319,15 @@ class FitnessConfig{
         }
 
         try{
+            res = new ExpectedOutputField((JSONObject)jsonObject.get("ExpectedOutput"));
+        } catch (Exception e){
+            e.printStackTrace();
+            res = new ExpectedOutputField();
+        } finally{
+            ExpectedOutput = (ExpectedOutputField)res;
+        }
+
+        try{
             res = (Double)jsonObject.get("LTLWeight");
         } catch(Exception e){
             e.printStackTrace();
@@ -264,6 +363,7 @@ class FitnessConfig{
         res = addFitnesses(res, Exception(output));
         res = addFitnesses(res, ExecutionTime(output));
         res = addFitnesses(res, IllegalOutput(output));
+        res = addFitnesses(res, ExpectedOutput(output));
         res.val = FitnessConfig.LTLWeight * res.val;
         return res;
     }
@@ -401,6 +501,19 @@ class FitnessConfig{
         res.val = IllegalOutput.weight * result / (IllegalOutput.words.length * output.length);
         return res;
     }
+
+    private static FitnessResult ExpectedOutput(ModuleReturns[] output){
+        if(!ExpectedOutput.enabled)
+            return new FitnessResult();
+        FitnessResult res = null;
+        if(ExpectedOutput.constantExpected)
+            res = ExpectedOutput.constantExpected(output);
+        else 
+            res = ExpectedOutput.constantExpected(output);
+
+        res.val = ExpectedOutput.weight * res.val / output.length;
+        return res;
+    }
     
 }
 
@@ -477,6 +590,121 @@ class ExecutionTimeField{
         enabled = false;
         weight = Double.NaN;
         maxTime = 0;
+    }
+
+}
+
+class ExpectedOutputField{
+    public final boolean enabled;
+    public final double weight;
+    public final boolean constantExpected;
+    public final boolean exactMatch;
+    public final String filePath;
+    private String[] fileContent;
+
+    public ExpectedOutputField(JSONObject jsonObject) throws MalformedFitnessConfig{
+        try{
+            enabled = (Boolean)jsonObject.get("enabled");
+            weight = ((Long)jsonObject.get("weight")).doubleValue();
+            constantExpected = (Boolean)jsonObject.get("constantExpected");
+            exactMatch = (Boolean)jsonObject.get("exactMatch");
+            filePath = (String)jsonObject.get("filePath");
+            if(!constantExpected){
+                fileContent = readExpectedOutput();
+            }
+        
+        } catch(Exception e){
+            e.printStackTrace();
+            throw new MalformedFitnessConfig();
+        }
+    }
+
+    private String[] readExpectedOutput() throws MalformedFitnessConfig{
+        try{
+            ArrayList<String> content = new ArrayList<>();
+            File myObj = new File(filePath);
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                content.add(data);
+            }
+            myReader.close();   
+            return content.toArray(new String[0]);
+        } catch(Exception e){
+            e.printStackTrace();
+            throw new MalformedFitnessConfig();
+        }
+    }
+
+    public ExpectedOutputField(){
+        enabled = false;
+        weight = 0;
+        constantExpected = false;
+        exactMatch = false;
+        filePath = "";
+    }
+
+    public FitnessResult constantExpected(ModuleReturns[] output){
+        FitnessResult res = new FitnessResult();
+        int matched = 0;
+        int possibles = 0;
+        for(ModuleReturns moduleReturns: output){
+            if(exactMatch){
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.equals(str)){
+                        matched++;
+                    } else {
+                        if(res.moduleFailures.containsKey(moduleReturns)){
+                            res.moduleFailures.replace(moduleReturns, res.moduleFailures.get(moduleReturns)+1);
+                        } else {
+                            res.moduleFailures.put(moduleReturns, 1);
+                        }
+                    }
+                    possibles++;
+                }
+            } else {
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.contains(str)){
+                        matched++;
+                    }
+                    possibles++;
+                }
+            }
+        }
+        res.val = (double)matched/(double)possibles;
+        return res;
+    }
+
+    public FitnessResult dynamicExpected(ModuleReturns[] output) throws MalformedFitnessConfig{
+        FitnessResult res = new FitnessResult();
+        int matched = 0;
+        int possibles = 0;
+        fileContent = readExpectedOutput();
+        for(ModuleReturns moduleReturns: output){
+            if(exactMatch){
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.equals(str)){
+                        matched++;
+                    } else {
+                        if(res.moduleFailures.containsKey(moduleReturns)){
+                            res.moduleFailures.replace(moduleReturns, res.moduleFailures.get(moduleReturns)+1);
+                        } else {
+                            res.moduleFailures.put(moduleReturns, 1);
+                        }
+                    }
+                    possibles++;
+                }
+            } else {
+                for(String str: fileContent){
+                    if(moduleReturns.stdout.contains(str)){
+                        matched++;
+                    }
+                    possibles++;
+                }
+            }
+        }
+        res.val = (double)matched/(double)possibles;
+        return res;
     }
 
 }

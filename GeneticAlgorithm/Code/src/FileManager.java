@@ -22,6 +22,7 @@ public class FileManager {
         jsonObject.put("nCrossOver", 5);
         jsonObject.put("interpreterPath", "");
         jsonObject.put("interpreterCommand", "java -jar ");
+        jsonObject.put("tournamentSize", 5);
 
         try(FileWriter file = new FileWriter("GeneticAlgorithmConfig.json")){
             String jsonString = jsonObject.toJSONString();
@@ -88,6 +89,7 @@ class GeneticAlgorithmConfig{
     public static final int nCrossOver;
     public static final String interperterPath;
     public static final String interperterCommand;
+    public static final int tournamentSize;
 
     static{
         JSONParser jsonParser = new JSONParser();
@@ -218,6 +220,16 @@ class GeneticAlgorithmConfig{
         } finally{
             interperterCommand = (String)res;
         }
+
+        try{
+            res = jsonObject.get("tournamentSize");
+        } catch(Exception e){
+            e.printStackTrace();
+            res = 200;
+        } finally{
+            tournamentSize = ((Long)res).intValue();
+        }
+        
     }
 
     public static Integer nextInt(Integer bound){

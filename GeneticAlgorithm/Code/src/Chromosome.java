@@ -77,4 +77,8 @@ public class Chromosome {
         return true;
     }
 
+    public Chromosome clone(){
+        return new Chromosome(toString());
+    }
+
 }

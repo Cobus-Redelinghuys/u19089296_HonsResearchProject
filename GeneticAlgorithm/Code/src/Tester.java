@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class Tester {
     public static void TestConversions(){
@@ -47,8 +48,21 @@ public class Tester {
     }
 
     public static void TestFitness(Chromosome[] population, int gen){
+        HashMap<Double, Integer> summary = new HashMap<>();
         for(Chromosome chromosome: population){
-            System.out.println(chromosome.toString() + ": " + Fitness.determineFitness(chromosome, gen));
+            Double v = Fitness.determineFitness(chromosome, gen);
+            System.out.println(chromosome.toString() + ": " + v);
+            if(summary.containsKey(v)){
+                summary.replace(v, summary.get(v)+1);
+            } else {
+                summary.put(v, 1);
+            }
+        }
+
+        System.out.println("\nSummary");
+
+        for(Double v: summary.keySet()){
+            System.out.println(v + ": " + summary.get(v));
         }
     }
 }

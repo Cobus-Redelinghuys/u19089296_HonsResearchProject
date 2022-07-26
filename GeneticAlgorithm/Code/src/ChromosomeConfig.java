@@ -31,6 +31,14 @@ public class ChromosomeConfig{
     public static Chromosome generatChromosome(){
         return new Chromosome();
     }
+
+    public static <T> int indexOfGeneConfig(GeneConfig<T> geneConfig){
+        for(int i=0; i < geneConfigs.length; i++){
+            if(geneConfigs[i].equals(geneConfig))
+                return i;
+        }
+        return -1;
+    }
 }
 
 @SuppressWarnings("rawtypes")

@@ -25,6 +25,13 @@
         "weight" : 1,
         "words" : []
     },
+    "ExpectedOutput" : {
+        "enabled" : true,
+        "weight" : 1,
+        "constantExpected" : true,
+        "exactMatch" : true,
+        "filePath" : ""
+    },
     "LTLWeight" : 0.5,
     "MWeight" : 0.4,
     "GWeight" : 0.3
