@@ -25,12 +25,12 @@ public class GeneticAlgorithm {
         ArrayList<Chromosome>[] selected = tournamentSelection(gen);
         for(int i=0; i < GeneticAlgorithmConfig.selectionSize; i++){
             if(GeneticAlgorithmConfig.crossoverProp < GeneticAlgorithmConfig.nextDouble(1.0) && i+1 < selected.length){
-                Chromosome[] offspring = GeneticAlgorithmConfig.crossOverType.crossOver(selected[0].get(i), selected[0].get(i+1));
+                Chromosome[] offspring = Chromosome.crossOver(selected[0].get(i), selected[0].get(i+1));
                 replacementMap.replace(selected[1].get(i), offspring[0]);
                 replacementMap.replace(selected[1].get(i+1), offspring[i+1]);
                 i++;
             } else if(GeneticAlgorithmConfig.mutationProp < GeneticAlgorithmConfig.nextDouble(1.0)) {
-                Chromosome offspring = GeneticAlgorithmConfig.mutationType.mutate(selected[0].get(i));
+                Chromosome offspring = Chromosome.mutate(selected[0].get(i));
                 replacementMap.replace(selected[1].get(i), offspring);
             } else {
                 replacementMap.replace(selected[1].get(i), selected[0].get(i).clone());
