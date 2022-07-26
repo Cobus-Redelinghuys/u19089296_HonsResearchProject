@@ -2,5 +2,7 @@
     "module1" : 3,
     "module2" : 5,
     "module3" : 5,
-    "module4" : 10
+    "module4" : 2,
+    "module5" : -5,
+    "module6" : -10
 }

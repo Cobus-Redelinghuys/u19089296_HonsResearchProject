@@ -35,9 +35,23 @@ public class ModulesConfig {
     @SuppressWarnings("unchecked")
     public static JSONArray executeSystem(Input input){
         JSONArray result = new JSONArray();
-        for(int i=0; i < moduleConfigs.length; i++){
+        /*for(int i=0; i < moduleConfigs.length; i++){
             result.add(moduleConfigs[i].executeModule(input.moduleInputs.get(moduleConfigs[i].moduleName)));
+        }*/
+        ModuleRunner[] moduleRunners = new ModuleRunner[moduleConfigs.length];
+        for(int i=0; i < moduleRunners.length; i++){
+            moduleRunners[i] = new ModuleRunner(moduleConfigs[i], input.moduleInputs.get(moduleConfigs[i].moduleName));
+            moduleRunners[i].start();
         }
+        try{
+            for(int i=0; i < moduleRunners.length; i++){
+                moduleRunners[i].join();
+                result.add(moduleRunners[i].getResults());
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
         return result;
     }
 
@@ -106,6 +120,9 @@ class ModuleConfig{
         LocalTime end;
         int exitValue = 0;
         for(String arg: inputs){
+            if(moduleName.equals("module5")){
+                arg = Long.toBinaryString(Long.parseLong(arg));
+            }
             args += arg + " ";
         }
         try{
@@ -119,21 +136,18 @@ class ModuleConfig{
             result[0] = "";
             result[1] = "";
             int n1;
+            ProcessMonitor processMonitor = new ProcessMonitor(process, start);
+            processMonitor.start();
             while((n1 = isr.read()) > 0){
                 result[0] += (char)n1; 
             }
             while((n1 = esr.read()) > 0){
-                System.out.println(n1);
                 result[1] += (char)n1;
             }
-            while(process.isAlive()){
-                LocalTime temp = LocalTime.now();
-                if(Math.abs(Duration.between(temp, start).toMillis()) > 30000){
-                    process.destroyForcibly();
-                    result[1] += "Infinite Loop";
-                    break;  
-                }
-            }
+            while(process.isAlive()){}
+            processMonitor.join();
+            if(processMonitor.infiniteLoop)
+                result[1] += "Infinite loop";
             if(process.exitValue() == 139)
                 result[1] += "Seg fault";
             exitValue = process.exitValue();
@@ -197,5 +211,48 @@ class Input{
         public String toString() {
             return "Incorrect input for module: " + errorModule.moduleName;
         }
+    }
+}
+
+class ProcessMonitor extends Thread{
+    private Process module;
+    private LocalTime start;
+    public boolean infiniteLoop = false;
+
+    public ProcessMonitor(Process module, LocalTime start){
+        this.module = module;
+        this.start = start;
+    }
+
+    @Override
+    public void run() {
+        while(module.isAlive()){
+            LocalTime temp = LocalTime.now();
+            if(Math.abs(Duration.between(temp, start).toMillis()) > 30000){
+                module.destroyForcibly();
+                infiniteLoop = true;
+                break;  
+            }
+        }
+    }
+}
+
+class ModuleRunner extends Thread{
+    private ModuleConfig moduleConfig;
+    private ArrayList<String> inputs;
+    private JSONObject result = null;
+
+    public ModuleRunner(ModuleConfig moduleConfig, ArrayList<String> inputs){
+        this.moduleConfig = moduleConfig;
+        this.inputs = inputs;
+    }
+
+    @Override
+    public void run() {
+        result = moduleConfig.executeModule(inputs);
+    }
+
+    public JSONObject getResults(){
+        return result;
     }
 }
