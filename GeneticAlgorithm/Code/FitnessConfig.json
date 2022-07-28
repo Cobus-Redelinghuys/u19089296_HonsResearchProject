@@ -26,7 +26,7 @@
         "words" : []
     },
     "ExpectedOutput" : {
-        "enabled" : true,
+        "enabled" : false,
         "weight" : 1,
         "constantExpected" : true,
         "exactMatch" : true,

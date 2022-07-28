@@ -15,7 +15,7 @@ import org.json.simple.parser.JSONParser;
 public class Fitness {
     public static double determineFitness(Chromosome input, int gen){
         FileManager.writeChromosomeToFile(input);
-        //executeSystem();
+        executeSystem();
         ModuleReturns[] output = null;
         try{
             output = parseOutput();
