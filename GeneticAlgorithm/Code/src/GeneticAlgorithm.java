@@ -1,6 +1,10 @@
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+
+import org.jfree.chart.ChartUtils;
+import org.jfree.chart.JFreeChart;
 
 public class GeneticAlgorithm {
     Chromosome[] population = new Chromosome[GeneticAlgorithmConfig.populationSize];
@@ -40,11 +44,18 @@ public class GeneticAlgorithm {
         System.out.println("Generation: " + gen);
         Double[] arr = calculateAverage(gen);
         System.out.println("Average inf: " + arr[0]);
+        Summary.avgInf.put(gen, arr[0]);
         System.out.println("Average: " + arr[1]);
+        Summary.avg.put(gen, arr[1]);
         arr = calculateStd(gen);
         System.out.println("Std inf: " + arr[0]);
+        Summary.stdInf.put(gen, arr[0]);
         System.out.println("Std: " + arr[1]);
-        System.out.println("Variance: " + variance());
+        Summary.std.put(gen, arr[1]);
+        double var = variance();
+        System.out.println("Variance: " + var);
+        Summary.variance.put(gen, var);
+
     }
 
     public float variance(){
@@ -155,5 +166,68 @@ public class GeneticAlgorithm {
 
     public void DBAnalysis(){
         FitnessMemory.DBAnalysis();
+    }
+
+    public void showGraphs(){
+        Summary.displayAvg();
+        Summary.displayAvgInf();
+        Summary.displayStd();
+        Summary.displayStdInf();
+        Summary.displayVariance();
+    }
+}
+
+class Summary{
+    static HashMap<Integer, Double> avg;
+    static HashMap<Integer, Double> avgInf;
+    static HashMap<Integer, Double> std;
+    static HashMap<Integer, Double> stdInf;
+    static HashMap<Integer, Double> variance;
+
+    static{
+        avg = new HashMap<>();
+        avgInf = new HashMap<>();
+        std = new HashMap<>();
+        stdInf = new HashMap<>();
+        variance = new HashMap<>();
+    }
+
+    static void displayAvg(){
+        Graph g = new Graph("Averages", avg, "Generations", "Average", "Average Accuracies");
+        g.display();
+        saveToFile("average.png", g);
+    }
+
+    static void displayAvgInf(){
+        Graph g = new Graph("Averages with infinites", avgInf, "Generations", "Average", "Average Accuracies");
+        g.display();
+        saveToFile("averageInf.png", g);
+    }
+
+    static void displayStd(){
+        Graph g = new Graph("Standard Deviations", std, "Generations", "STD", "Standard deviations of Accuracies");
+        g.display();
+        saveToFile("std.png", g);
+    }
+
+    static void displayStdInf(){
+        Graph g = new Graph("Standard Deviations", stdInf, "Generations", "STD", "Standard deviations of Accuracies");
+        g.display();
+        saveToFile("stdInf.png", g);
+    }
+
+    static void displayVariance(){
+        Graph g = new Graph("Variance in population", variance, "Generations", "%", "Variance");
+        g.display();
+        saveToFile("variance.png", g);
+    }
+
+    private static void saveToFile(String fileName, Graph chart){
+        try{
+            File file = new File(fileName);
+            ChartUtils.saveChartAsPNG(file, chart.lineGraph, 3840, 2160);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }
