@@ -2,9 +2,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.jfree.chart.ChartUtils;
-import org.jfree.chart.JFreeChart;
 
 public class GeneticAlgorithm {
     Chromosome[] population = new Chromosome[GeneticAlgorithmConfig.populationSize];
@@ -174,6 +175,7 @@ public class GeneticAlgorithm {
         Summary.displayStd();
         Summary.displayStdInf();
         Summary.displayVariance();
+        Summary.displayDBSummary();
     }
 }
 
@@ -222,12 +224,73 @@ class Summary{
         saveToFile("variance.png", g);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    static void displayDBSummary(){
+        HashMap<GeneConfig,HashMap<String,HashMap<Boolean,ArrayList<String>>>> db = FitnessMemory.getDB();
+        for(GeneConfig geneConfig: db.keySet()){
+            HashMap<String, Integer> vals = new HashMap<>();
+            for(String str: db.get(geneConfig).keySet()){
+                if(db.get(geneConfig).get(str).containsKey(true)){
+                    vals.put(str, 
+                        db.get(geneConfig).get(str).get(true).size());
+                }
+            }
+            Graph g = new Graph(((Integer)ChromosomeConfig.indexOfGeneConfig(geneConfig)).toString(), "Gene value", "Occurence", "Gene", vals);
+            g.display();
+            saveToFile("Gene_" + ((Integer)ChromosomeConfig.indexOfGeneConfig(geneConfig)).toString() + ".png", g);
+        }
+    }   
+
     private static void saveToFile(String fileName, Graph chart){
+        PrintOutThread printOutThread = new PrintOutThread(fileName, chart);
+        printOutThread.start();
+        Timer timer = new Timer();
+        PrintOutTimer printTimer = new PrintOutTimer(printOutThread, timer);
+        timer.schedule(printTimer, 300);
+        //TODO: Fix infinite loop issue
+    }
+
+    
+}
+
+class PrintOutThread extends Thread{
+    private String fileName;
+    private Graph chart;
+    
+    public PrintOutThread(String fileName, Graph graph){
+        this.fileName = fileName;
+        this.chart = graph;
+    }
+
+    @Override
+    public void run() {
         try{
-            File file = new File(fileName);
+            File file = new File(GeneticAlgorithmConfig.runDir+"\\"+GeneticAlgorithmConfig.runName + "_" + fileName);
             ChartUtils.saveChartAsPNG(file, chart.lineGraph, 3840, 2160);
         } catch(Exception e){
             e.printStackTrace();
+        }
+    }
+
+    public PrintOutThread construct(String fileName, Graph graph){
+        return new PrintOutThread(fileName, graph);
+    }
+}
+
+class PrintOutTimer extends TimerTask{
+    private Thread thread;
+    private Timer timer;
+
+    public PrintOutTimer(Thread thread, Timer timer){
+        this.thread = thread;
+        this.timer = timer;
+    }
+
+    @Override
+    public void run() {
+        if(thread != null && thread.isAlive()){
+            thread.interrupt();
+            timer.cancel();
         }
     }
 }

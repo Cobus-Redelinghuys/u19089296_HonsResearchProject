@@ -21,10 +21,25 @@ public class Graph extends JFrame {
         setContentPane(chartPanel);
     }
 
+    public Graph(String graphTitle, String XLabel, String YLabel, String lineTitle, HashMap<String, Integer> input){
+        super("GA Testing System");
+        lineGraph = ChartFactory.createBarChart(graphTitle, XLabel, YLabel, generateDataset(lineTitle, input));
+        ChartPanel chartPanel = new ChartPanel(lineGraph);
+        setContentPane(chartPanel);
+    }
+
     private DefaultCategoryDataset generateDataset(HashMap<Integer, Double> input, String lineTitle){
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         for(Integer i: input.keySet()){
             dataset.addValue(input.get(i), lineTitle, i);
+        }
+        return dataset;
+    }
+
+    private DefaultCategoryDataset generateDataset(String lineTitle, HashMap<String, Integer> input){
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        for(String str: input.keySet()){
+            dataset.addValue(input.get(str), str, "Gene values");
         }
         return dataset;
     }

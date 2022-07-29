@@ -1,5 +1,10 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.nio.channels.FileChannel;
+import java.time.LocalDateTime;
 import java.util.Random;
 
 import org.json.simple.JSONArray;
@@ -74,7 +79,7 @@ public class FileManager {
     }
 }
 
-
+@SuppressWarnings("resource")
 class GeneticAlgorithmConfig{
     public final static int populationSize;
     public static final int numGenerations;
@@ -90,6 +95,8 @@ class GeneticAlgorithmConfig{
     public static final String interperterPath;
     public static final String interperterCommand;
     public static final int tournamentSize;
+    public static final String runName;
+    public static final String runDir;
 
     static{
         JSONParser jsonParser = new JSONParser();
@@ -229,7 +236,64 @@ class GeneticAlgorithmConfig{
         } finally{
             tournamentSize = ((Long)res).intValue();
         }
-        
+
+        LocalDateTime now = LocalDateTime.now();
+        String nowStr = now.getYear() + "_" + now.getMonth() + "_" + now.getDayOfMonth() + "_" + now.getHour() + "_" + now.getMinute() + "_" + now.getSecond();
+        runName = "GARun_"+seed+"_"+nowStr;
+        runDir = "./RunResults/"+runName;
+        File f = new File(runDir);
+        boolean v = f.mkdir();
+        if(!v){
+            f = new File("./RunResults");
+            f.mkdir();
+            f = new File(runDir);
+            f.mkdir();
+        }
+        FileChannel source = null;
+        FileChannel dest = null;
+        try{
+            File destFile = new File(runDir + "/ChromosomeConfig.json");
+            destFile.createNewFile();
+            source = new FileInputStream("./ChromosomeConfig.json").getChannel();
+            dest =  new FileOutputStream(destFile).getChannel();
+            dest.transferFrom(source, 0, source.size());
+            source.close();
+            dest.close();
+
+            destFile = new File(runDir + "/FitnessConfig.json");
+            destFile.createNewFile();
+            source = new FileInputStream("./FitnessConfig.json").getChannel();
+            dest =  new FileOutputStream(destFile).getChannel();
+            dest.transferFrom(source, 0, source.size());
+            source.close();
+            dest.close();
+            
+            destFile = new File(runDir + "/GeneticAlgorithmConfig.json");
+            destFile.createNewFile();
+            source = new FileInputStream("./GeneticAlgorithmConfig.json").getChannel();
+            dest =  new FileOutputStream(destFile).getChannel();
+            dest.transferFrom(source, 0, source.size());
+            source.close();
+            dest.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }finally{
+            try{
+                if(source != null){
+                    source.close();;
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+
+            try{
+                if(dest != null){
+                    source.close();;
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
     public static Integer nextInt(Integer bound){
