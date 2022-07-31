@@ -45,7 +45,12 @@ public class Graph extends JFrame {
     }
 
     public void display(){
-        this.pack();
-        this.setVisible(true);
+        try{
+            this.pack();
+            this.setVisible(true);
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
 }

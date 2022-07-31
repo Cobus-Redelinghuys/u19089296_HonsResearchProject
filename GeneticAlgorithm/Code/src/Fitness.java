@@ -168,7 +168,7 @@ class FitnessMemory{
             geneTypes.add(geneInfo);
         }
 
-        try(FileWriter file = new FileWriter(GeneticAlgorithmConfig.runDir + "\\DatabaseSummary.json")){
+        try(FileWriter file = new FileWriter(GeneticAlgorithmConfig.runDir  +"/DatabaseSummary.json")){
             String jsonString = geneTypes.toJSONString();
             file.write(jsonString);
             file.flush();

@@ -203,7 +203,7 @@ class Summary{
     static void displayAvgInf(){
         Graph g = new Graph("Averages with infinites", avgInf, "Generations", "Average", "Average Accuracies");
         g.display();
-        saveToFile("averageInf.png", g);
+        //saveToFile("averageInf.png", g);
     }
 
     static void displayStd(){
@@ -215,7 +215,7 @@ class Summary{
     static void displayStdInf(){
         Graph g = new Graph("Standard Deviations", stdInf, "Generations", "STD", "Standard deviations of Accuracies");
         g.display();
-        saveToFile("stdInf.png", g);
+        //saveToFile("stdInf.png", g);
     }
 
     static void displayVariance(){
@@ -265,7 +265,7 @@ class PrintOutThread extends Thread{
     @Override
     public void run() {
         try{
-            File file = new File(GeneticAlgorithmConfig.runDir+"\\"+GeneticAlgorithmConfig.runName + "_" + fileName);
+            File file = new File(GeneticAlgorithmConfig.runDir+"/"+GeneticAlgorithmConfig.runName + "_" + fileName);
             ChartUtils.saveChartAsPNG(file, chart.lineGraph, 3840, 2160);
         } catch(Exception e){
             e.printStackTrace();

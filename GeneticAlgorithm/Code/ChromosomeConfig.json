@@ -9,9 +9,17 @@
                 10.0]
         },
         {
-            "minValue":-10,
+            "minValue":-20,
             "geneDataType":"Integer",
-            "maxValue":10,
+            "maxValue":20,
+            "invalidValues":[
+                5,
+                10]
+        },
+        {
+            "minValue":-30,
+            "geneDataType":"Integer",
+            "maxValue":30,
             "invalidValues":[
                 5,
                 10]
