@@ -27,6 +27,7 @@ public class Graph extends JFrame {
 
     public Graph(String graphTitle, String XLabel, String YLabel, String lineTitle, HashMap<String, Integer> input){
         super("GA Testing System");
+        System.out.println(graphTitle);
         lineGraph = ChartFactory.createBarChart(graphTitle, XLabel, YLabel, generateDataset(lineTitle, input));
         ChartPanel chartPanel = new ChartPanel(lineGraph);
         setContentPane(chartPanel);
@@ -57,9 +58,9 @@ public class Graph extends JFrame {
         /*for(String str: input.keySet()){
             dataset.addValue(input.get(str), str, "Gene values");
         }*/
-
         for(Integer i: orderedList.keySet()){
             for(String str: orderedList.get(i)){
+                //System.out.println(i + ": " + str);
                 dataset.addValue(i, str, "Gene values");
             }
         }
