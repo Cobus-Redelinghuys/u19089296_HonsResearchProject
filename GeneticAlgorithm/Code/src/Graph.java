@@ -1,4 +1,8 @@
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JFrame;
 
@@ -38,9 +42,28 @@ public class Graph extends JFrame {
 
     private DefaultCategoryDataset generateDataset(String lineTitle, HashMap<String, Integer> input){
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        for(String str: input.keySet()){
-            dataset.addValue(input.get(str), str, "Gene values");
+        List<Integer> sortedArr = new ArrayList<>(input.values());
+        Collections.sort(sortedArr);
+        HashMap<Integer, ArrayList<String>> orderedList = new HashMap<>();
+
+        for(Integer i: sortedArr){
+            orderedList.put(i, new ArrayList<>());
         }
+
+        for(String str: input.keySet()){
+            orderedList.get(input.get(str)).add(str);
+        }
+
+        /*for(String str: input.keySet()){
+            dataset.addValue(input.get(str), str, "Gene values");
+        }*/
+
+        for(Integer i: orderedList.keySet()){
+            for(String str: orderedList.get(i)){
+                dataset.addValue(i, str, "Gene values");
+            }
+        }
+
         return dataset;
     }
 
