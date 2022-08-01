@@ -23,7 +23,7 @@ public class ChromosomeConfig{
         GeneConfig[] tempArr = new GeneConfig[geneArray.size()];
         for(int i=0; i < tempArr.length; i++){
             JSONObject jObject = (JSONObject)geneArray.get(i);
-            tempArr[i] = GeneConfig.getGeneConfig(jObject);
+            tempArr[i] = GeneConfig.getGeneConfig(jObject, i);
         }
         geneConfigs = tempArr;
     }
@@ -48,6 +48,7 @@ class GeneConfig<T>{
     private final T minValue;
     public final T[] invalidValues;
     public final Class dataType;
+    public final int geneNumber;
 
     public T maxValue(){
         return maxValue;
@@ -58,7 +59,8 @@ class GeneConfig<T>{
     }
     
     @SuppressWarnings("unchecked")
-    public GeneConfig(JSONObject jsonObject){
+    public GeneConfig(JSONObject jsonObject, int geneNumber){
+        this.geneNumber = geneNumber;
         Object res = null;
         try{
             String line = (String)jsonObject.get("geneDataType");
@@ -126,7 +128,7 @@ class GeneConfig<T>{
     }
 
 
-    static GeneConfig getGeneConfig(JSONObject jsonObject){
+    static GeneConfig getGeneConfig(JSONObject jsonObject, int geneNumber){
         GeneDataType res = null;
         try{
             String line = (String)jsonObject.get("geneDataType");
@@ -140,19 +142,19 @@ class GeneConfig<T>{
 
         switch (res) {
             case Integer:
-                return new GeneConfig<Integer>(jsonObject);
+                return new GeneConfig<Integer>(jsonObject, geneNumber);
         
             case Character:
-                return new GeneConfig<Character>(jsonObject);
+                return new GeneConfig<Character>(jsonObject, geneNumber);
                 
             case Float:
-                return new GeneConfig<Float>(jsonObject);
+                return new GeneConfig<Float>(jsonObject, geneNumber);
 
             case Boolean:
-                return new GeneConfig<Boolean>(jsonObject);
+                return new GeneConfig<Boolean>(jsonObject, geneNumber);
 
             default:
-                return new GeneConfig<Double>(jsonObject);
+                return new GeneConfig<Double>(jsonObject, geneNumber);
         }
     }
 

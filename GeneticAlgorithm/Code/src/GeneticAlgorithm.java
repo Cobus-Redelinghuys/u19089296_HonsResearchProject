@@ -102,6 +102,8 @@ public class GeneticAlgorithm {
         totalFitnesses[gen] = new ArrayList<>();
         HashMap<Double,ArrayList<Chromosome>> fitnesses = new HashMap<>();
         for(Chromosome chromosome: selection){
+            var db = FitnessMemory.getDB();
+            var vals = chromosome.convertFromBin();
             double fitness = Fitness.determineFitness(chromosome, gen);
             totalFitnesses[gen].add(fitness);
             if(fitnesses.containsKey(fitness)){

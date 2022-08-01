@@ -19,15 +19,17 @@ public class Chromosome {
         Object[] result = new Object[ChromosomeConfig.geneConfigs.length];
         String line = bitRepresentation;
         for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
-            int startPos;
             int finalPos;
-            if(i == 0)
+            /*if(i == 0)
                 startPos = 0;
             else
                 startPos = ChromosomeConfig.geneConfigs[i-1].numBits();
 
+            ;
+            String str = line.substring(startPos, startPos + finalPos);*/
             finalPos = ChromosomeConfig.geneConfigs[i].numBits();
-            String str = line.substring(startPos, startPos + finalPos);
+            String str = line.substring(0, finalPos);
+            line = line.substring(finalPos);
             result[i] = ChromosomeConfig.geneConfigs[i].convertFromBin(str);
         }
 
