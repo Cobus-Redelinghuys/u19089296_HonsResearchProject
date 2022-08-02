@@ -41,6 +41,13 @@
             "relativePath" : "./modules/Module6/Module6.jar",
             "executionCommand" : "java -jar ",
             "numberOfCLArguments" : 1
+        },
+        {
+            "moduleName" : "module7",
+            "enabled" : true,
+            "relativePath" : "./modules/Module7/Module7",
+            "executionCommand" : "",
+            "numberOfCLArguments" : 1
         }
     ]
 }
