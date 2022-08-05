@@ -8,7 +8,7 @@ public class Module8{
         try{
             Integer[] fileContents = ExmpleThread.readFile();
             ExmpleThread et1 = new ExmpleThread(Integer.parseInt(args[0]), fileContents[1]);
-            ExmpleThread et2 = new ExmpleThread(fileContents[1], fileContents[3]);
+            ExmpleThread et2 = new ExmpleThread(fileContents[1], fileContents[2]);
             et1.start();
             et2.start();
             et1.join();
@@ -55,6 +55,7 @@ class ExmpleThread extends Thread{
                 returnVal[i%3] = Integer.parseInt(data);
                 if(i >= 2)
                     break;
+                i++;
             }
             myReader.close();
         } catch (Exception e) {
