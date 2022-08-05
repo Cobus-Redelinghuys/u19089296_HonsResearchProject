@@ -6,8 +6,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Module8{
     public static void main(String[] args) {
         try{
-            ExmpleThread et1 = new ExmpleThread(4, 2);
-            ExmpleThread et2 = new ExmpleThread(10, 5);
+            Integer[] fileContents = ExmpleThread.readFile();
+            ExmpleThread et1 = new ExmpleThread(Integer.parseInt(args[0]), fileContents[1]);
+            ExmpleThread et2 = new ExmpleThread(fileContents[1], fileContents[3]);
             et1.start();
             et2.start();
             et1.join();
@@ -20,10 +21,6 @@ public class Module8{
             e.printStackTrace();
         }
     }  
-
-    
-
-    
 }
 
 class ExmpleThread extends Thread{
@@ -38,9 +35,9 @@ class ExmpleThread extends Thread{
     }
 
     static{
-        //TODO: Make dynamic
-        resources = new Boolean[20];
-        locks = new ReentrantLock[20];
+        Integer[] fileContents = readFile();
+        resources = new Boolean[fileContents[0]];
+        locks = new ReentrantLock[fileContents[0]];
         for(int i=0; i < resources.length; i++){
             resources[i] = (i%2 == 0);
             locks[i] = new ReentrantLock();
@@ -48,15 +45,15 @@ class ExmpleThread extends Thread{
     }
 
     public static Integer[] readFile(){
-        Integer[] returnVal = new Integer[2];
+        Integer[] returnVal = new Integer[3];
         try {
             File myObj = new File("./modules/Module8/config.txt");
             Scanner myReader = new Scanner(myObj);
             int i = 0;
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
-                returnVal[i%2] = Integer.parseInt(data);
-                if(i >= 1)
+                returnVal[i%3] = Integer.parseInt(data);
+                if(i >= 2)
                     break;
             }
             myReader.close();
