@@ -36,7 +36,7 @@ class StarvationExample {
     public static Integer readFile(){
         Integer returnVal = 0;
         try {
-            File myObj = new File("./modules/Module9/config.txt");
+            File myObj = new File("./modules/Module10/config.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
