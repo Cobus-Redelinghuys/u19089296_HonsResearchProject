@@ -67,7 +67,7 @@ public class FileManager {
         JSONObject jsonObject = new JSONObject();
         Object[] genes = c.convertFromBin();
         for(int i=0; i < genes.length; i++){
-            jsonObject.put("module" + (i+1), genes[i]);
+            jsonObject.put((i), genes[i]);
         }
 
         try(FileWriter file = new FileWriter("Input.json")){

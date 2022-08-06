@@ -1,0 +1,15 @@
+{
+    "reproductionProp":0.5,
+    "crossoverProp":0.5,
+    "seed":0,
+    "mutationType":"BitWisInversion",
+    "selectionSize":10,
+    "populationSize":100,
+    "numGenerations":150,
+    "crossOverType":"OnePointCrossOver",
+    "mutationProp":0.5,
+    "nCrossOver":5,
+    "tournamentSize":5,
+    "interpreterPath" : "",
+    "interpreterCommand" : "java -jar "
+}
