@@ -201,7 +201,7 @@ class Input{
             ArrayList<String> inputs = new ArrayList<>();
             int index = (int)i;
             String str = String.valueOf(index);
-            var temp = jsonObject.get(str);
+            //var temp = jsonObject.get(str);
             if(jsonObject.get(str).getClass().equals(JSONArray.class)){
                 JSONArray jsonArray = (JSONArray)jsonObject.get(str);
                 for(Object object : jsonArray){
