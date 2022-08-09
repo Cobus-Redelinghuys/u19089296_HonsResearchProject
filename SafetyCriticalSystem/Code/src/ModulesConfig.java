@@ -178,7 +178,7 @@ class Input{
             e.printStackTrace();
         }
         JSONObject jsonObject = (JSONObject)obj;
-        for(ModuleConfig moduleConfig: ModulesConfig.moduleConfigs){
+        /*for(ModuleConfig moduleConfig: ModulesConfig.moduleConfigs){
             if(!jsonObject.containsKey(moduleConfig.moduleName) || (map.containsKey(moduleConfig.moduleName))){
                 throw new InputException(moduleConfig);
             } else {
@@ -195,6 +195,24 @@ class Input{
                 if(map.get(moduleConfig.moduleName).size() != moduleConfig.numberOfCLArguments)
                     throw new InputException(moduleConfig);
  
+            }
+        }*/
+        for(long i=0; i < jsonObject.size(); i++){
+            ArrayList<String> inputs = new ArrayList<>();
+            int index = (int)i;
+            String str = String.valueOf(index);
+            //var temp = jsonObject.get(str);
+            if(jsonObject.get(str).getClass().equals(JSONArray.class)){
+                JSONArray jsonArray = (JSONArray)jsonObject.get(str);
+                for(Object object : jsonArray){
+                    inputs.add(object.toString());
+                }
+            } else {
+                inputs.add(jsonObject.get(str).toString());  
+            }
+            map.put(ModulesConfig.moduleConfigs[index].moduleName, inputs);
+            if(map.get(ModulesConfig.moduleConfigs[index].moduleName).size() != ModulesConfig.moduleConfigs[index].numberOfCLArguments){
+                throw new InputException(ModulesConfig.moduleConfigs[index]);
             }
         }
         moduleInputs = map;
