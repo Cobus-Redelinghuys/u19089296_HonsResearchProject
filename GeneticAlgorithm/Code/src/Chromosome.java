@@ -19,15 +19,17 @@ public class Chromosome {
         Object[] result = new Object[ChromosomeConfig.geneConfigs.length];
         String line = bitRepresentation;
         for(int i=0; i < ChromosomeConfig.geneConfigs.length; i++){
-            int startPos;
             int finalPos;
-            if(i == 0)
+            /*if(i == 0)
                 startPos = 0;
             else
                 startPos = ChromosomeConfig.geneConfigs[i-1].numBits();
 
+            ;
+            String str = line.substring(startPos, startPos + finalPos);*/
             finalPos = ChromosomeConfig.geneConfigs[i].numBits();
-            String str = line.substring(startPos, startPos + finalPos);
+            String str = line.substring(0, finalPos);
+            line = line.substring(finalPos);
             result[i] = ChromosomeConfig.geneConfigs[i].convertFromBin(str);
         }
 
@@ -49,16 +51,27 @@ public class Chromosome {
 
     public static Chromosome[] crossOver(Chromosome c1, Chromosome c2){
         Chromosome[] res = GeneticAlgorithmConfig.crossOverType.crossOver(c1, c2);
-        while((!validateChromosome(res[0])) && (!validateChromosome(res[1]))){
+        int attempt = 0;
+        while((!validateChromosome(res[0])) && (!validateChromosome(res[1])) && attempt < 5000){
             res = GeneticAlgorithmConfig.crossOverType.crossOver(c1, c2);
+            attempt++;
+        }
+        if(attempt >= 5000){
+            res[0] = c1.clone();
+            res[1] = c2.clone();
         }
         return res;
     }
 
     public static Chromosome mutate(Chromosome c){
         Chromosome res = GeneticAlgorithmConfig.mutationType.mutate(c);
-        while((!validateChromosome(res))){
+        int attempt = 0;
+        while((!validateChromosome(res)) && attempt < 5000){
             res = GeneticAlgorithmConfig.mutationType.mutate(c);
+            attempt++;
+        }
+        if(attempt >= 5000){
+            res = c.clone();
         }
         return res;
     }

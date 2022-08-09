@@ -65,5 +65,13 @@ public class Tester {
             System.out.println(v + ": " + summary.get(v));
         }
     }
+
+    public static void TestGraph(){
+        HashMap<Integer, Double> map = new HashMap<>();
+        for(int i=0; i < 100; i++){
+            map.put(i, i/100.0);
+        }
+        Graph g = new Graph("Test", map, "I", "I/100", "%");
+        g.display();
+    }
 }
-//

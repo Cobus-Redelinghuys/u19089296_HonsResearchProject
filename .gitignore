@@ -3,3 +3,6 @@ GeneticAlgorithm/Code/Code.jar
 .vscode/configurationCache.log
 .vscode/dryrun.log
 .vscode/targets.log
+GeneticAlgorithm/Code/.vscode/launch.json
+GeneticAlgorithm/Code/.vscode/settings.json
+GeneticAlgorithm/bin/

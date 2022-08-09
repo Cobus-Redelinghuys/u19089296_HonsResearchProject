@@ -15,6 +15,7 @@ public class App {
             geneticAlgorithm.runAlgorithm();
             geneticAlgorithm.printDatabase();
             geneticAlgorithm.DBAnalysis();
+            geneticAlgorithm.showGraphs();
         }
     }
 

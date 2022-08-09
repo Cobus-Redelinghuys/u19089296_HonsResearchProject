@@ -1,6 +1,11 @@
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import org.jfree.chart.ChartUtils;
 
 public class GeneticAlgorithm {
     Chromosome[] population = new Chromosome[GeneticAlgorithmConfig.populationSize];
@@ -38,9 +43,20 @@ public class GeneticAlgorithm {
         }
         population = replacementMap.values().toArray(new Chromosome[0]);
         System.out.println("Generation: " + gen);
-        System.out.println("Average: " + calculateAverage(gen));
-        System.out.println("Std: " + calculateStd(gen));
-        System.out.println("Variance: " + variance());
+        Double[] arr = calculateAverage(gen);
+        System.out.println("Average inf: " + arr[0]);
+        Summary.avgInf.put(gen, arr[0]);
+        System.out.println("Average: " + arr[1]);
+        Summary.avg.put(gen, arr[1]);
+        arr = calculateStd(gen);
+        System.out.println("Std inf: " + arr[0]);
+        Summary.stdInf.put(gen, arr[0]);
+        System.out.println("Std: " + arr[1]);
+        Summary.std.put(gen, arr[1]);
+        double var = variance();
+        System.out.println("Variance: " + var);
+        Summary.variance.put(gen, var);
+
     }
 
     public float variance(){
@@ -86,6 +102,8 @@ public class GeneticAlgorithm {
         totalFitnesses[gen] = new ArrayList<>();
         HashMap<Double,ArrayList<Chromosome>> fitnesses = new HashMap<>();
         for(Chromosome chromosome: selection){
+            var db = FitnessMemory.getDB();
+            var vals = chromosome.convertFromBin();
             double fitness = Fitness.determineFitness(chromosome, gen);
             totalFitnesses[gen].add(fitness);
             if(fitnesses.containsKey(fitness)){
@@ -104,21 +122,45 @@ public class GeneticAlgorithm {
         return res;
     }
 
-    private double calculateAverage(int gen){
+    private Double[] calculateAverage(int gen){
         double sum = 0;
+        double sumInf = 0;
+        int count = 0;
         for(double v: totalFitnesses[gen]){
-            sum += v;
+            sumInf += v;
+            if(Double.isFinite(v) && !Double.isNaN(v)){
+                sum += v;
+                count++;
+            }
         }
-        return sum/totalFitnesses[gen].size();
+        Double[] arr = new Double[2];
+        arr[0] = sumInf/totalFitnesses[gen].size();
+        if(count != 0)
+            arr[1] = sum/count;
+        else 
+            arr[1] = 0.0;
+        return arr;
     }
 
-    private double calculateStd(int gen){
-        double avg = calculateAverage(gen);
+    private Double[] calculateStd(int gen){
+        Double[] avg = calculateAverage(gen);
         double sum = 0;
+        int count = 0;
+        double sumInf = 0;
         for(double v: totalFitnesses[gen]){
-            sum = Math.pow(v-avg, 2);
+            sumInf = Math.pow(v-avg[0], 2);
+            if(Double.isFinite(v) && !Double.isNaN(v)){
+                sum = Math.pow(v-avg[1], 2);
+                count++;
+            } 
         }
-        return Math.sqrt(sum/totalFitnesses[gen].size());
+        Double[] arr = new Double[2];
+        arr[0] = Math.sqrt(sumInf/totalFitnesses[gen].size());
+        if(count != 0)
+            arr[1] = Math.sqrt(sum/count);
+        else 
+            arr[1] = 0.0;
+        return arr;
     }
 
     public void printDatabase(){
@@ -127,5 +169,130 @@ public class GeneticAlgorithm {
 
     public void DBAnalysis(){
         FitnessMemory.DBAnalysis();
+    }
+
+    public void showGraphs(){
+        Summary.displayAvg();
+        Summary.displayAvgInf();
+        Summary.displayStd();
+        Summary.displayStdInf();
+        Summary.displayVariance();
+        Summary.displayDBSummary();
+    }
+}
+
+class Summary{
+    static HashMap<Integer, Double> avg;
+    static HashMap<Integer, Double> avgInf;
+    static HashMap<Integer, Double> std;
+    static HashMap<Integer, Double> stdInf;
+    static HashMap<Integer, Double> variance;
+
+    static{
+        avg = new HashMap<>();
+        avgInf = new HashMap<>();
+        std = new HashMap<>();
+        stdInf = new HashMap<>();
+        variance = new HashMap<>();
+    }
+
+    static void displayAvg(){
+        Graph g = new Graph("Averages", avg, "Generations", "Average", "Average Accuracies");
+        g.display();
+        saveToFile("average.png", g);
+    }
+
+    static void displayAvgInf(){
+        Graph g = new Graph("Averages with infinites", avgInf, "Generations", "Average", "Average Accuracies");
+        g.display();
+        //saveToFile("averageInf.png", g);
+    }
+
+    static void displayStd(){
+        Graph g = new Graph("Standard Deviations", std, "Generations", "STD", "Standard deviations of Accuracies");
+        g.display();
+        saveToFile("std.png", g);
+    }
+
+    static void displayStdInf(){
+        Graph g = new Graph("Standard Deviations", stdInf, "Generations", "STD", "Standard deviations of Accuracies");
+        g.display();
+        //saveToFile("stdInf.png", g);
+    }
+
+    static void displayVariance(){
+        Graph g = new Graph("Variance in population", variance, "Generations", "%", "Variance");
+        g.display();
+        saveToFile("variance.png", g);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    static void displayDBSummary(){
+        HashMap<GeneConfig,HashMap<String,HashMap<Boolean,ArrayList<String>>>> db = FitnessMemory.getDB();
+        for(GeneConfig geneConfig: db.keySet()){
+            HashMap<String, Integer> vals = new HashMap<>();
+            for(String str: db.get(geneConfig).keySet()){
+                if(db.get(geneConfig).get(str).containsKey(true)){
+                    vals.put(str, 
+                        db.get(geneConfig).get(str).get(true).size());
+                }
+            }
+            Graph g = new Graph(((Integer)ChromosomeConfig.indexOfGeneConfig(geneConfig)).toString(), "Gene value", "Occurence", "Gene", vals);
+            g.display();
+            saveToFile("Gene_" + ((Integer)ChromosomeConfig.indexOfGeneConfig(geneConfig)).toString() + ".png", g);
+        }
+    }   
+
+    private static void saveToFile(String fileName, Graph chart){
+        PrintOutThread printOutThread = new PrintOutThread(fileName, chart);
+        printOutThread.start();
+        Timer timer = new Timer();
+        PrintOutTimer printTimer = new PrintOutTimer(printOutThread, timer);
+        timer.schedule(printTimer, 300);
+        //TODO: Fix infinite loop issue
+    }
+
+    
+}
+
+class PrintOutThread extends Thread{
+    private String fileName;
+    private Graph chart;
+    
+    public PrintOutThread(String fileName, Graph graph){
+        this.fileName = fileName;
+        this.chart = graph;
+    }
+
+    @Override
+    public void run() {
+        try{
+            File file = new File(GeneticAlgorithmConfig.runDir+"/"+GeneticAlgorithmConfig.runName + "_" + fileName);
+            ChartUtils.saveChartAsPNG(file, chart.lineGraph, 3840, 2160);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public PrintOutThread construct(String fileName, Graph graph){
+        return new PrintOutThread(fileName, graph);
+    }
+}
+
+class PrintOutTimer extends TimerTask{
+    private Thread thread;
+    private Timer timer;
+
+    public PrintOutTimer(Thread thread, Timer timer){
+        this.thread = thread;
+        this.timer = timer;
+    }
+
+    @Override
+    public void run() {
+        if(thread != null && thread.isAlive()){
+            thread.interrupt();
+            timer.cancel();
+        }
     }
 }
