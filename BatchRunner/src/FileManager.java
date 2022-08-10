@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
 @SuppressWarnings("unchecked")
 public class FileManager {
     static final JSONObject GAConfig;
@@ -81,10 +82,15 @@ public class FileManager {
             java.lang.System.exit(-1);
         }
         configChangerClasses = list.toArray(new ConfigChangerClass[0]);
+        numTests = 0;
         for(ConfigChangerClass c: configChangerClasses){
             createTestDirs(c);
         }
+
+        
     }
+
+    static int numTests;
 
     private static void createTestDirs(ConfigChangerClass changerClass){
         for(Object v: changerClass.values){
@@ -152,6 +158,7 @@ public class FileManager {
                     java.lang.System.exit(-1);
                 }
             });
+            numTests++;
         }
         
     }
