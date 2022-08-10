@@ -1,12 +1,47 @@
 {
     "GA" : {
-        "fileName" : "",
+        "fileName" : "GeneticAlgorithmConfig.json",
         "params" : {
-            "" : {
-                "default" : "",
-                "values" : []
+            "populationSize" : {
+                "default" : 100,
+                "values" : [300, 50, 100, 150, 200]
             },
-            " " : {}
+            "numGenerations" : {
+                "default" : 150,
+                "values" : [10, 75, 150, 225, 300]
+            },
+            "reproductionProp" : {
+                "default" : 0.5,
+                "values" : [0, 0.25, 0.5, 0.75, 1]
+            },
+            "crossoverProp" : {
+                "default" : 0.5,
+                "values" : [0, 0.25, 0.5, 0.75, 1]
+            },
+            "selectionSize" : {
+                "default" : 10,
+                "values" : [0, 5, 10, 25, 50]
+            },
+            "mutationProp" : {
+                "default" : 0.5,
+                "values" : [0, 0.25, 0.5, 0.75, 1]
+            },
+            "tournamentSize" : {
+                "default" : 0.5,
+                "values" : [0, 0.25, 0.5, 0.75, 1]
+            },
+            "nCrossOver" : {
+                "default" : 10,
+                "values" : [0, 5, 10, 25, 50]
+            },
+            "mutationType" : {
+                "default" : "BitWisInversion",
+                "values" : ["SingleBitInversion", "BitWisInversion", "RandomSelection"]
+            },
+            "crossOverType" : {
+                "default" : "OnePointCrossOver",
+                "values" : ["OnePointCrossOver", "NPointCrossOver", "SegmentedCrossOver", "UniformCrossOver", "ShuffleCrossOver"]
+            }
         }
     }
 }

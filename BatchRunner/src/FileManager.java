@@ -5,12 +5,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
+@SuppressWarnings("unchecked")
 public class FileManager {
     static final JSONObject GAConfig;
     static final JSONObject ChromosomeConfig;
@@ -22,7 +24,9 @@ public class FileManager {
     static final String testName;
     private static final String testsDir = "Experiments";
     private static final String finalTestDir;
+    static final ConfigChangerClass[] configChangerClasses;
 
+    
     static{
         LocalDateTime lDT = LocalDateTime.now();
         testName = lDT.getDayOfMonth() + "_" +lDT.getMonth().name() + "_" + lDT.getYear() + "_" + lDT.getHour() + "h" + lDT.getMinute();
@@ -60,26 +64,95 @@ public class FileManager {
             }
         }
         finalTestDir = testsDir + "/" + testName + "/";
-        writeFile(GAConfig, finalTestDir+"GeneticAlgorithmConfig.json");
-        writeFile(ChromosomeConfig, finalTestDir+"ChromosomeConfig.json");
-        writeFile(FitnessConfig, finalTestDir+"FitnessConfig.json");
-        writeFile(ModuleConfig, finalTestDir+"ModuleConfig.json");
-        writeFile(CodeFile);
-        writeFile(SystemFile);
+       
+        ArrayList<ConfigChangerClass> list = new ArrayList<>();
+        JSONParser jsonParser = new JSONParser();
         try{
-            Files.createDirectories(Paths.get(finalTestDir+"/modules"));
-        } catch (Exception e){
+            JSONObject tName = (JSONObject)jsonParser.parse(new FileReader("./Config.json"));
+            tName.keySet().forEach(testName -> {
+                JSONObject pNames = (JSONObject)tName.get(testName);
+                pNames = (JSONObject)pNames.get("params");
+                pNames.keySet().forEach(paramName -> {
+                    list.add(new ConfigChangerClass((JSONObject)tName.get(testName), testName.toString(), paramName.toString()));
+                });
+            });
+        } catch(Exception e){
             e.printStackTrace();
             java.lang.System.exit(-1);
         }
-            Modules.forEach(mods -> {
+        configChangerClasses = list.toArray(new ConfigChangerClass[0]);
+        for(ConfigChangerClass c: configChangerClasses){
+            createTestDirs(c);
+        }
+    }
+
+    private static void createTestDirs(ConfigChangerClass changerClass){
+        for(Object v: changerClass.values){
+            String dir = finalTestDir + "/" + changerClass.testSetName + "/" + changerClass.param;
+            dir += "/" + v + "/";
+            try{
+                Files.createDirectories(Paths.get(dir));
+            }catch(Exception e){
+                e.printStackTrace();
+                java.lang.System.exit(-1);
+            }
+            if(changerClass.fileName.contains("GeneticAlgorithmConfig"))
+                writeFile(GAConfig, dir+"GeneticAlgorithmConfig.json", changerClass.param, v);
+            else
+                writeFile(GAConfig, dir+"GeneticAlgorithmConfig.json");
+
+            if(changerClass.fileName.contains("ChromosomeConfig"))
+                writeFile(ChromosomeConfig, dir+"ChromosomeConfig.json", changerClass.param, v);
+            else
+                writeFile(ChromosomeConfig, dir+"ChromosomeConfig.json");
+
+            if(changerClass.fileName.contains("FitnessConfig"))
+                writeFile(FitnessConfig, dir+"FitnessConfig.json", changerClass.param, v);
+            else
+                writeFile(FitnessConfig, dir+"FitnessConfig.json");
+
+            if(changerClass.fileName.contains("ModuleConfig"))
+                writeFile(ModuleConfig, dir+"ModuleConfig.json", changerClass.param, v);
+            else
+                writeFile(ModuleConfig, dir+"ModuleConfig.json");
+
+            writeFile(CodeFile, dir);
+            writeFile(SystemFile, dir);
+
+            /*try{
+                Files.createDirectories(Paths.get(dir+"/modules"));
+            } catch (Exception e){
+                e.printStackTrace();
+                java.lang.System.exit(-1);
+            }*/
+            final String fDir = dir;
+            Stream<Path> tempModules = null;
+            
+            try{
+                Path p = Paths.get("./projectFiles/modules/");
+                tempModules = Files.walk(p);
+                //tempModules = Files.walk(Paths.get("./projectFiles/modules"));
+            } catch (Exception e){
+                tempModules = null;
+                e.printStackTrace();
+                java.lang.System.exit(-1);
+            }
+
+            tempModules.forEach(mods -> {
                 try{
-                    Files.createDirectories(Paths.get(finalTestDir + "/modules/"+mods));
+                    String modulesWithoutProject = mods.subpath(2,mods.getNameCount()).toString();
+                    String fileDir = fDir + "/" + modulesWithoutProject;
+                    
+                    
+                    // Files.createDirectories(Paths.get(fileDir));
+                    //if(!Files.exists(mods.subpath(2,mods.getNameCount())))
+                        Files.copy(mods, Paths.get(fileDir));
                 }catch (Exception e){
                     e.printStackTrace();
                     java.lang.System.exit(-1);
                 }
             });
+        }
         
     }
 
@@ -122,9 +195,21 @@ public class FileManager {
         }
     }
 
-    private static void writeFile(File file){
+    private static void writeFile(JSONObject jsonObject, String fileName, Object param, Object val){
+        try(FileWriter file = new FileWriter(fileName)){
+            JSONObject copy = (JSONObject)jsonObject.clone();
+            copy.replace(param, val);
+            String jsonString = jsonObject.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    private static void writeFile(File file, String dir){
         try{
-            Files.copy(file.toPath(), Path.of("./" + finalTestDir +"/" + file.getName()));
+            Files.copy(file.toPath(), Path.of(dir + "/" + file.getName()));
         } catch(Exception e) {
             e.printStackTrace();
             java.lang.System.exit(-1);
@@ -132,8 +217,20 @@ public class FileManager {
     }
     
 }
-/*
+
 class ConfigChangerClass{
-    public 
+    public final String testSetName;
+    public final String fileName;
+    public final Object defaultValue;
+    public final Object[] values;
+    public final String param;
+    
+    public ConfigChangerClass(JSONObject jsonObject, String testName, String param){
+        testSetName = testName;
+        this.param = param;
+        fileName = jsonObject.get("fileName").toString();
+        JSONObject obj = ((JSONObject)jsonObject.get("params"));
+        defaultValue = ((JSONObject)obj.get(param)).get("default");
+        values = ((JSONArray)((JSONObject)obj.get(param)).get("values")).toArray();
+    }
 }
-*/
