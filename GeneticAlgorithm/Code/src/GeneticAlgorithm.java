@@ -117,8 +117,8 @@ public class GeneticAlgorithm {
         Double[] sortedArray = fitnesses.keySet().toArray(new Double[0]);
         Arrays.sort(sortedArray); 
         Chromosome[] res = new Chromosome[2];
-        res[0] = fitnesses.get(sortedArray[0]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[0]).size()));
-        res[1] = fitnesses.get(sortedArray[sortedArray.length-1]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[sortedArray.length-1]).size()));
+        res[1] = fitnesses.get(sortedArray[0]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[0]).size()));
+        res[0] = fitnesses.get(sortedArray[sortedArray.length-1]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[sortedArray.length-1]).size()));
         return res;
     }
 

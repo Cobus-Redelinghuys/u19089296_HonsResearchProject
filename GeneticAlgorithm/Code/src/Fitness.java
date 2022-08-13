@@ -13,6 +13,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class Fitness {
+
+    /*
     public static double determineFitness(Chromosome input, int gen){
         FileManager.writeChromosomeToFile(input);
         executeSystem();
@@ -33,6 +35,32 @@ public class Fitness {
         }
         else {
             double m = FitnessConfig.MWeight*(1 / resA.moduleFailures.size()); 
+            result += m;
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
+        }            
+        return result;
+    }*/
+
+    public static double determineFitness(Chromosome input, int gen){
+        FileManager.writeChromosomeToFile(input);
+        executeSystem();
+        ModuleReturns[] output = null;
+        try{
+            output = parseOutput();
+        } catch (Exception e){
+            e.printStackTrace();
+            return 0;
+        } 
+
+        double result = 0;
+        FitnessResult resA = LTL(output);
+        result += resA.val;
+        if(resA.moduleFailures.size() <= 0){
+            result += Double.NEGATIVE_INFINITY;
+            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false, resA.val, Double.NEGATIVE_INFINITY);
+        }
+        else {
+            double m = FitnessConfig.MWeight*(resA.moduleFailures.size()); 
             result += m;
             result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
         }            
