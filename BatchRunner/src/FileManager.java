@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -303,8 +305,24 @@ class ExperimentRunner extends Thread{
         try{
             Runtime runtime = Runtime.getRuntime();
             //System.out.println(path.toString() + "\\Code.jar");
-            Process process = runtime.exec("java -jar " + path.toString() + "\\Code.jar");
+            //Process process = runtime.exec("java -jar " + path.toString() + "/Code.jar");
+            Process process = runtime.exec("make make"+testNum);
             while(process.isAlive()){}
+            InputStream inputStream = process.getInputStream();
+			InputStreamReader isr = new InputStreamReader(inputStream);
+			InputStream errorStream = process.getErrorStream();
+			InputStreamReader esr = new InputStreamReader(errorStream);
+            String stdout = "";
+            String stderr = "";
+            int n1;
+            while((n1 = isr.read()) > 0){
+                stdout += (char)n1; 
+            }
+            while((n1 = esr.read()) > 0){
+                stderr += (char)n1; 
+            }
+            System.out.println("stdout: " + stdout);
+            System.out.println("stderr: " + stderr);
             process.destroy();
         }catch(Exception e){
             e.printStackTrace();
