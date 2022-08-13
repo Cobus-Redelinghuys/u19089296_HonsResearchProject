@@ -4,5 +4,6 @@ public class App {
         int count = FileManager.numTests;
         count = FileManager.numTests;
         System.out.println("Number of tests generated: " + count);
+        FileManager.runExperiments();
     }
 }

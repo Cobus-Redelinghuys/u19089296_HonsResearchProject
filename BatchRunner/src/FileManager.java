@@ -83,16 +83,18 @@ public class FileManager {
         }
         configChangerClasses = list.toArray(new ConfigChangerClass[0]);
         numTests = 0;
+        experimentsPaths = new ArrayList<>();
         for(ConfigChangerClass c: configChangerClasses){
             createTestDirs(c);
         }
-
-        
+        makeFileCreater();
     }
 
     static int numTests;
+    static ArrayList<ArrayList<ExperimentRunner>> experimentsPaths;
 
     private static void createTestDirs(ConfigChangerClass changerClass){
+        ArrayList<ExperimentRunner> exePaths = new ArrayList<>();
         for(Object v: changerClass.values){
             String dir = finalTestDir + "/" + changerClass.testSetName + "/" + changerClass.param;
             dir += "/" + v + "/";
@@ -122,8 +124,10 @@ public class FileManager {
             else
                 writeFile(ModuleConfig, dir+"ModuleConfig.json");
 
+            exePaths.add(new ExperimentRunner(Paths.get(dir)));
             writeFile(CodeFile, dir);
             writeFile(SystemFile, dir);
+            writeMakeFile(dir);
 
             /*try{
                 Files.createDirectories(Paths.get(dir+"/modules"));
@@ -160,7 +164,7 @@ public class FileManager {
             });
             numTests++;
         }
-        
+        experimentsPaths.add(exePaths);
     }
 
     private static JSONObject readJSON(String filename){
@@ -222,7 +226,91 @@ public class FileManager {
             java.lang.System.exit(-1);
         }
     }
+
+    private static void writeMakeFile(String p){
+        String lines = "make:\n\tjava -jar Code.jar";
+        try {
+            String pathLine = p + "/makefile";
+            pathLine = pathLine.replace('\\', '/');
+            File myObj = new File(pathLine);
+            myObj.createNewFile();
+            FileWriter myWriter = new FileWriter(pathLine);
+            myWriter.write(lines);
+            myWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+    }
     
+    public static void runExperiments(){
+        for(ArrayList<ExperimentRunner> innerPath : experimentsPaths){
+            try{
+                ArrayList<ExperimentRunner> experimentRunners = new ArrayList<>();
+                for(ExperimentRunner p : innerPath){
+                    experimentRunners.add(p);
+                }    
+                for(ExperimentRunner er: experimentRunners){
+                    er.start();
+                }
+                
+                for(ExperimentRunner er: experimentRunners){
+                    er.join();
+                }
+            } catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void makeFileCreater(){
+        String lines = "";
+        for(ArrayList<ExperimentRunner> experimentRunners: experimentsPaths){
+            for(ExperimentRunner experimentRunner: experimentRunners){
+                lines += "make" + experimentRunner.testNum + ":\n";
+                lines += "\tmake -C \".\\" + experimentRunner.path.toString() + "\\\"\n";
+            }
+        }
+        try {
+            File myObj = new File("makefile");
+            myObj.createNewFile();
+            FileWriter myWriter = new FileWriter("makefile");
+            lines = lines.replace('\\', '/');
+            myWriter.write(lines);
+            myWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
+
+    }
+
+}
+
+class ExperimentRunner extends Thread{
+    private static int TestNumbers = 0;
+    public final int testNum;
+    public final Path path;
+    public ExperimentRunner(Path path){
+        this.path = path;
+        testNum = TestNumbers++;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Experiment " + testNum + " started");
+        try{
+            Runtime runtime = Runtime.getRuntime();
+            //System.out.println(path.toString() + "\\Code.jar");
+            Process process = runtime.exec("java -jar " + path.toString() + "\\Code.jar");
+            while(process.isAlive()){}
+            process.destroy();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("Experiment " + testNum + " finsihed");
+    }
 }
 
 class ConfigChangerClass{
