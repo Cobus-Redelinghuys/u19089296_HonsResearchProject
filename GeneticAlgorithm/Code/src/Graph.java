@@ -73,7 +73,7 @@ public class Graph extends JFrame {
             this.setVisible(true);
         }
         catch(Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 }
