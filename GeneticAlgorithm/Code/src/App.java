@@ -16,6 +16,7 @@ public class App {
             geneticAlgorithm.printDatabase();
             geneticAlgorithm.DBAnalysis();
             geneticAlgorithm.showGraphs();
+            geneticAlgorithm.printFinalChromosomes();
         }
     }
 
