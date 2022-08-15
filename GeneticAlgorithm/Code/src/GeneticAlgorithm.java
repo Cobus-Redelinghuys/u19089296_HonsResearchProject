@@ -1,6 +1,7 @@
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -178,6 +179,43 @@ public class GeneticAlgorithm {
         Summary.displayStdInf();
         Summary.displayVariance();
         Summary.displayDBSummary();
+    }
+
+    public void printFinalChromosomes(){
+        HashMap<Chromosome, Integer> count = new HashMap<>();
+        for(Chromosome c: population){
+            if(count.containsKey(c)){
+                count.replace(c, count.get(c)+1);
+            } else {
+                count.put(c, 1);
+            }
+        }
+        HashMap<Integer, ArrayList<Chromosome>> invCount = new HashMap<>();
+        for(Chromosome c: count.keySet()){
+            if(invCount.containsKey(count.get(c))){
+                invCount.get(count.get(c)).add(c);
+            } else {
+                invCount.put(count.get(c), new ArrayList<>());
+                invCount.get(count.get(c)).add(c);
+            }
+        }
+
+        Integer[] sortedVals = invCount.keySet().toArray(new Integer[0]);
+        Arrays.sort(sortedVals);
+        System.out.println();
+        for(Integer i: sortedVals){
+            for(Chromosome c: invCount.get(i)){
+                String str = c.toString();
+                double per = (double)i/population.length;
+                str += " (";
+                for(Object obj: c.convertFromBin()){
+                    str += obj.toString() + "|";
+                }
+                str = str.substring(0, str.length()-1);
+                str += ") : " + per;
+                System.out.println(str);
+            }
+        }
     }
 }
 
