@@ -67,6 +67,20 @@ public class Fitness {
         return result;
     }
 
+    @SuppressWarnings("rawtypes")
+    public static HashMap<Class,Double> determineLTLFailed(Chromosome input){
+        FileManager.writeChromosomeToFile(input);
+        executeSystem();
+        ModuleReturns[] output = null;
+        try{
+            output = parseOutput();
+        } catch (Exception e){
+            e.printStackTrace();
+            return new HashMap<>();
+        } 
+        return FitnessConfig.determineFinalFitness(output);
+    }
+
     private static void executeSystem(){
         try{
             Runtime runtime = Runtime.getRuntime();
@@ -398,6 +412,33 @@ class FitnessConfig{
         res = addFitnesses(res, ExpectedOutput(output));
         res.val = FitnessConfig.LTLWeight * res.val;
         return res;
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static HashMap<Class, Double> determineFinalFitness(ModuleReturns[] output){
+        HashMap<Class, Double> results = new HashMap<>();
+        if(Safety.enabled){
+            results.put(Safety.getClass(), Safety(output).val);
+        }
+        if(Livelyness.enabled){
+            results.put(Livelyness.getClass(), Livelyness(output).val);
+        }
+        if(SegFault.enabled){
+            results.put(SegFault.getClass(), SegFault(output).val);
+        }
+        if(Exceptions.enabled){
+            results.put(Exceptions.getClass(), Exception(output).val);
+        }
+        if(ExecutionTime.enabled){
+            results.put(ExecutionTime.getClass(), ExecutionTime(output).val);
+        }
+        if(IllegalOutput.enabled){
+            results.put(IllegalOutput.getClass(), IllegalOutput(output).val);
+        }
+        if(ExpectedOutput.enabled){
+            results.put(ExpectedOutput.getClass(), ExpectedOutput(output).val);
+        }
+        return results;
     }
 
     private static FitnessResult addFitnesses(FitnessResult result, FitnessResult input){
