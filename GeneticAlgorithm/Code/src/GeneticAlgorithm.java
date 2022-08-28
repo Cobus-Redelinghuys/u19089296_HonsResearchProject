@@ -6,9 +6,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.jfree.chart.ChartUtils;
+import org.jfree.data.json.impl.JSONArray;
+import org.jfree.data.json.impl.JSONObject;
 
 public class GeneticAlgorithm {
     Chromosome[] population = new Chromosome[GeneticAlgorithmConfig.populationSize];
+    JSONArray jsonResultArray = new JSONArray();
     
     public GeneticAlgorithm(){
         for(int i=0; i < population.length; i++){
@@ -22,6 +25,7 @@ public class GeneticAlgorithm {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void run(int gen){
         HashMap<Chromosome,Chromosome> replacementMap = new HashMap<>();
         for(Chromosome chromosome: population){
@@ -42,20 +46,28 @@ public class GeneticAlgorithm {
             }
         }
         population = replacementMap.values().toArray(new Chromosome[0]);
+        JSONObject jObj = new JSONObject();
         System.out.println("Generation: " + gen);
         Double[] arr = calculateAverage(gen);
         System.out.println("Average inf: " + arr[0]);
         Summary.avgInf.put(gen, arr[0]);
+        jObj.put("AvgInf", arr[0]);
         System.out.println("Average: " + arr[1]);
+        jObj.put("Avg", arr[1]);
         Summary.avg.put(gen, arr[1]);
         arr = calculateStd(gen);
         System.out.println("Std inf: " + arr[0]);
+        jObj.put("StdInf", arr[0]);
         Summary.stdInf.put(gen, arr[0]);
         System.out.println("Std: " + arr[1]);
+        jObj.put("Std", arr[0]);
         Summary.std.put(gen, arr[1]);
         double var = variance();
         System.out.println("Variance: " + var);
+        jObj.put("Var", var);
         Summary.variance.put(gen, var);
+        JSONObject jGenObj = new JSONObject();
+        jGenObj.put(gen, jObj);
 
     }
 
@@ -80,7 +92,7 @@ public class GeneticAlgorithm {
             for(int j=0; j < selection.length; j++){
                 Chromosome sel;
                 do{
-                    sel = population[GeneticAlgorithmConfig.nextInt(population.length)];
+                    sel = population[GeneticAlgorithmConfig.nextInt(population.length, 0)];
                 }while(selected.contains(sel));
                 selected.add(sel);
                 selection[j] = sel;
@@ -117,8 +129,8 @@ public class GeneticAlgorithm {
         Double[] sortedArray = fitnesses.keySet().toArray(new Double[0]);
         Arrays.sort(sortedArray); 
         Chromosome[] res = new Chromosome[2];
-        res[1] = fitnesses.get(sortedArray[0]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[0]).size()));
-        res[0] = fitnesses.get(sortedArray[sortedArray.length-1]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[sortedArray.length-1]).size()));
+        res[1] = fitnesses.get(sortedArray[0]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[0]).size(), 0));
+        res[0] = fitnesses.get(sortedArray[sortedArray.length-1]).get(GeneticAlgorithmConfig.nextInt(fitnesses.get(sortedArray[sortedArray.length-1]).size(), 0));
         return res;
     }
 
@@ -172,12 +184,14 @@ public class GeneticAlgorithm {
     }
 
     public void showGraphs(){
-        Summary.displayAvg();
-        Summary.displayAvgInf();
-        Summary.displayStd();
-        Summary.displayStdInf();
-        Summary.displayVariance();
-        Summary.displayDBSummary();
+        if(GeneticAlgorithmConfig.graphs){
+            Summary.displayAvg();
+            Summary.displayAvgInf();
+            Summary.displayStd();
+            Summary.displayStdInf();
+            Summary.displayVariance();
+            Summary.displayDBSummary();
+        }
     }
 
     @SuppressWarnings("rawtypes")
@@ -297,7 +311,6 @@ class Summary{
         Timer timer = new Timer();
         PrintOutTimer printTimer = new PrintOutTimer(printOutThread, timer);
         timer.schedule(printTimer, 300);
-        //TODO: Fix infinite loop issue
     }
 
     

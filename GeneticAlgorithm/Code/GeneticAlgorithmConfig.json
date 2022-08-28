@@ -11,5 +11,6 @@
     "nCrossOver":5,
     "tournamentSize":5,
     "interpreterPath" : "",
-    "interpreterCommand" : "java -jar "
+    "interpreterCommand" : "java -jar ",
+    "graphs" : false
 }
