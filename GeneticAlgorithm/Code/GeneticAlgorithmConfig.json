@@ -10,7 +10,7 @@
     "mutationProp":0.5,
     "nCrossOver":5,
     "tournamentSize":5,
-    "interpreterPath" : "",
+    "interpreterPath" : "System.jar",
     "interpreterCommand" : "java -jar ",
     "graphs" : false
 }

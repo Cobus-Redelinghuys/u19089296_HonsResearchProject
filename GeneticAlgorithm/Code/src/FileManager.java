@@ -308,7 +308,7 @@ class GeneticAlgorithmConfig{
     }
 
     public static Integer nextInt(Integer max, Integer min){
-        return random.nextInt(max-min)+min;
+        return random.nextInt(Math.abs(max-min))-min;
     }
 
     public static Boolean nextBoolean(){

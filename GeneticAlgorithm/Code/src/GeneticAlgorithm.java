@@ -194,7 +194,7 @@ public class GeneticAlgorithm {
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    //@SuppressWarnings("rawtypes")
     public void printFinalChromosomes(){
         HashMap<String, Integer> count = new HashMap<>();
         for(Chromosome c: population){
@@ -222,7 +222,7 @@ public class GeneticAlgorithm {
             for(String c: invCount.get(i)){
                 if(!alreadyPrinted.contains(c)){
                     alreadyPrinted.add(c);
-                    HashMap<Class, Double> LTLResults = Fitness.determineLTLFailed(new Chromosome(c));
+                    HashMap<String, Double> LTLResults = Fitness.determineLTLFailed(new Chromosome(c));
                     String str = c.toString();
                     double per = (double)i/population.length;
                     str += " (";
@@ -234,8 +234,8 @@ public class GeneticAlgorithm {
                     str = str.substring(0, str.length()-1);
                     str += ") : " + per;
                     System.out.println(str);
-                    for(Class c1: LTLResults.keySet()){
-                        System.out.println(c1.getSimpleName() + ": " + LTLResults.get(c1));
+                    for(String c1: LTLResults.keySet()){
+                        System.out.println(c1 + ": " + LTLResults.get(c1));
                     }
                 }
             }

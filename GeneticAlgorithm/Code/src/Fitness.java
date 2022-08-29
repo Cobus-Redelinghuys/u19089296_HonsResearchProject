@@ -53,22 +53,27 @@ public class Fitness {
         } 
 
         double result = 0;
-        FitnessResult resA = LTL(output);
-        result += resA.val;
-        if(resA.moduleFailures.size() <= 0){
-            result += Double.NEGATIVE_INFINITY;
-            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false, resA.val, Double.NEGATIVE_INFINITY);
+        if(Chromosome.validateChromosome(input)){
+            FitnessResult resA = LTL(output);
+            result += resA.val;
+            if(resA.moduleFailures.size() <= 0){
+                result += Double.NEGATIVE_INFINITY;
+                result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false, resA.val, Double.NEGATIVE_INFINITY);
+            }
+            else {
+                double m = FitnessConfig.MWeight*(resA.moduleFailures.size()); 
+                result += m;
+                result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
+            }            
+            return result;
+        } else {
+            //boolean r = Chromosome.validateChromosome(input);
+            return Double.NEGATIVE_INFINITY;
         }
-        else {
-            double m = FitnessConfig.MWeight*(resA.moduleFailures.size()); 
-            result += m;
-            result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
-        }            
-        return result;
     }
 
-    @SuppressWarnings("rawtypes")
-    public static HashMap<Class,Double> determineLTLFailed(Chromosome input){
+    //@SuppressWarnings("rawtypes")
+    public static HashMap<String,Double> determineLTLFailed(Chromosome input){
         FileManager.writeChromosomeToFile(input);
         executeSystem();
         ModuleReturns[] output = null;
@@ -414,29 +419,29 @@ class FitnessConfig{
         return res;
     }
 
-    @SuppressWarnings("rawtypes")
-    public static HashMap<Class, Double> determineFinalFitness(ModuleReturns[] output){
-        HashMap<Class, Double> results = new HashMap<>();
+    //@SuppressWarnings("rawtypes")
+    public static HashMap<String, Double> determineFinalFitness(ModuleReturns[] output){
+        HashMap<String, Double> results = new HashMap<>();
         if(Safety.enabled){
-            results.put(Safety.getClass(), Safety(output).val);
+            results.put("Safety", Safety(output).val);
         }
         if(Livelyness.enabled){
-            results.put(Livelyness.getClass(), Livelyness(output).val);
+            results.put("Livelyness", Livelyness(output).val);
         }
         if(SegFault.enabled){
-            results.put(SegFault.getClass(), SegFault(output).val);
+            results.put("SegFault", SegFault(output).val);
         }
         if(Exceptions.enabled){
-            results.put(Exceptions.getClass(), Exception(output).val);
+            results.put("Exceptions", Exception(output).val);
         }
         if(ExecutionTime.enabled){
-            results.put(ExecutionTime.getClass(), ExecutionTime(output).val);
+            results.put("ExecutionTime", ExecutionTime(output).val);
         }
         if(IllegalOutput.enabled){
-            results.put(IllegalOutput.getClass(), IllegalOutput(output).val);
+            results.put("IllegalOutput", IllegalOutput(output).val);
         }
         if(ExpectedOutput.enabled){
-            results.put(ExpectedOutput.getClass(), ExpectedOutput(output).val);
+            results.put("ExpectedOutput".getClass().getSimpleName(), ExpectedOutput(output).val);
         }
         return results;
     }
