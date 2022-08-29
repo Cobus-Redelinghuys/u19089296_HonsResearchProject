@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class GeneticAlgorithm {
         Summary.variance.put(gen, var);
         JSONObject jGenObj = new JSONObject();
         jGenObj.put(gen, jObj);
-
+        jsonResultArray.add(jGenObj);
     }
 
     public float variance(){
@@ -177,6 +178,13 @@ public class GeneticAlgorithm {
 
     public void printDatabase(){
         FitnessMemory.jsonSummary();
+        try(FileWriter file = new FileWriter(GeneticAlgorithmConfig.runDir  +"/GenerationResults.json")){
+            String jsonString = jsonResultArray.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void DBAnalysis(){

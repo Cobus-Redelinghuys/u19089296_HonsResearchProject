@@ -14,7 +14,7 @@ public class App {
             GeneticAlgorithm geneticAlgorithm = new GeneticAlgorithm();
             geneticAlgorithm.runAlgorithm();
             geneticAlgorithm.printDatabase();
-            geneticAlgorithm.DBAnalysis();
+            //geneticAlgorithm.DBAnalysis();
             geneticAlgorithm.showGraphs();
             geneticAlgorithm.printFinalChromosomes();
             System.exit(0);

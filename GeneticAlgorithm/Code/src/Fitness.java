@@ -83,6 +83,7 @@ public class Fitness {
             e.printStackTrace();
             return new HashMap<>();
         } 
+        //System.out.println(input.toString());
         return FitnessConfig.determineFinalFitness(output);
     }
 
