@@ -202,7 +202,7 @@ public class GeneticAlgorithm {
         }
     }
 
-    //@SuppressWarnings("rawtypes")
+    @SuppressWarnings("unchecked")
     public void printFinalChromosomes(){
         HashMap<String, Integer> count = new HashMap<>();
         for(Chromosome c: population){
@@ -225,28 +225,49 @@ public class GeneticAlgorithm {
         Integer[] sortedVals = invCount.keySet().toArray(new Integer[0]);
         Arrays.sort(sortedVals);
         System.out.println();
+        JSONArray jsonArray = new JSONArray();
         for(Integer i: sortedVals){
             ArrayList<String> alreadyPrinted = new ArrayList<>();
             for(String c: invCount.get(i)){
                 if(!alreadyPrinted.contains(c)){
                     alreadyPrinted.add(c);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("Binary_string", c.toString());
                     HashMap<String, Double> LTLResults = Fitness.determineLTLFailed(new Chromosome(c));
                     String str = c.toString();
                     double per = (double)i/population.length;
+                    jsonObject.put("Percentage", per);
                     str += " (";
                     Chromosome temp = new Chromosome(c);
                     Object[] vObj = temp.convertFromBin();
+                    JSONArray objArr = new JSONArray();
                     for(Object obj: vObj){
+                        objArr.add(obj.toString());
                         str += obj.toString() + "|";
                     }
+                    jsonObject.put("Values", objArr);
                     str = str.substring(0, str.length()-1);
                     str += ") : " + per;
                     System.out.println(str);
+                    JSONArray ltlResponse = new JSONArray();
                     for(String c1: LTLResults.keySet()){
+                        JSONObject ltlFailed = new JSONObject();
+                        ltlFailed.put(c1, LTLResults.get(c1));
                         System.out.println(c1 + ": " + LTLResults.get(c1));
+                        ltlResponse.add(ltlFailed);
                     }
+                    jsonObject.put("LTL Responses", ltlResponse);
+                    jsonArray.add(jsonObject);
                 }
             }
+        }
+
+        try(FileWriter file = new FileWriter(GeneticAlgorithmConfig.runDir  +"/FinalChromosomeResults.json")){
+            String jsonString = jsonArray.toJSONString();
+            file.write(jsonString);
+            file.flush();
+        } catch(Exception e){
+            e.printStackTrace();
         }
     }
 }
