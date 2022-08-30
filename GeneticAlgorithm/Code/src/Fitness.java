@@ -13,6 +13,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class Fitness {
+
+    /*
     public static double determineFitness(Chromosome input, int gen){
         FileManager.writeChromosomeToFile(input);
         executeSystem();
@@ -37,6 +39,52 @@ public class Fitness {
             result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
         }            
         return result;
+    }*/
+
+    public static double determineFitness(Chromosome input, int gen){
+        FileManager.writeChromosomeToFile(input);
+        executeSystem();
+        ModuleReturns[] output = null;
+        try{
+            output = parseOutput();
+        } catch (Exception e){
+            e.printStackTrace();
+            return 0;
+        } 
+
+        double result = 0;
+        if(Chromosome.validateChromosome(input)){
+            FitnessResult resA = LTL(output);
+            result += resA.val;
+            if(resA.moduleFailures.size() <= 0){
+                result += Double.NEGATIVE_INFINITY;
+                result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, false, resA.val, Double.NEGATIVE_INFINITY);
+            }
+            else {
+                double m = FitnessConfig.MWeight*(resA.moduleFailures.size()); 
+                result += m;
+                result += FitnessConfig.GWeight*FitnessMemory.G(input, gen, true, resA.val, m);
+            }            
+            return result;
+        } else {
+            //boolean r = Chromosome.validateChromosome(input);
+            return Double.NEGATIVE_INFINITY;
+        }
+    }
+
+    //@SuppressWarnings("rawtypes")
+    public static HashMap<String,Double> determineLTLFailed(Chromosome input){
+        FileManager.writeChromosomeToFile(input);
+        executeSystem();
+        ModuleReturns[] output = null;
+        try{
+            output = parseOutput();
+        } catch (Exception e){
+            e.printStackTrace();
+            return new HashMap<>();
+        } 
+        //System.out.println(input.toString());
+        return FitnessConfig.determineFinalFitness(output);
     }
 
     private static void executeSystem(){
@@ -370,6 +418,33 @@ class FitnessConfig{
         res = addFitnesses(res, ExpectedOutput(output));
         res.val = FitnessConfig.LTLWeight * res.val;
         return res;
+    }
+
+    //@SuppressWarnings("rawtypes")
+    public static HashMap<String, Double> determineFinalFitness(ModuleReturns[] output){
+        HashMap<String, Double> results = new HashMap<>();
+        if(Safety.enabled){
+            results.put("Safety", Safety(output).val);
+        }
+        if(Livelyness.enabled){
+            results.put("Livelyness", Livelyness(output).val);
+        }
+        if(SegFault.enabled){
+            results.put("SegFault", SegFault(output).val);
+        }
+        if(Exceptions.enabled){
+            results.put("Exceptions", Exception(output).val);
+        }
+        if(ExecutionTime.enabled){
+            results.put("ExecutionTime", ExecutionTime(output).val);
+        }
+        if(IllegalOutput.enabled){
+            results.put("IllegalOutput", IllegalOutput(output).val);
+        }
+        if(ExpectedOutput.enabled){
+            results.put("ExpectedOutput".getClass().getSimpleName(), ExpectedOutput(output).val);
+        }
+        return results;
     }
 
     private static FitnessResult addFitnesses(FitnessResult result, FitnessResult input){

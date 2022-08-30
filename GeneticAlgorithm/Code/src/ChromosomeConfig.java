@@ -197,7 +197,7 @@ enum CrossOverType{
         @Override
         public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
             Chromosome[] res = new Chromosome[2];
-            int point = GeneticAlgorithmConfig.nextInt(c1.toString().length());
+            int point = GeneticAlgorithmConfig.nextInt(c1.toString().length(), 0);
             String str1 = c1.toString().substring(0, point) + c2.toString().substring(point);
             String str2 = c2.toString().substring(0, point) + c1.toString().substring(point);
             res[0] = new Chromosome(str1);
@@ -219,7 +219,7 @@ enum CrossOverType{
         @Override
         public Chromosome[] crossOver(Chromosome c1, Chromosome c2) {
             Chromosome[] res = new Chromosome[]{c1, c2};
-            int bound = GeneticAlgorithmConfig.nextInt(c1.toString().length());
+            int bound = GeneticAlgorithmConfig.nextInt(c1.toString().length(), 0);
             for(int i=0; i < bound; i++){
                 res = OnePointCrossOver.crossOver(res[0], res[1]);
             }
@@ -268,7 +268,7 @@ enum CrossOverType{
             String str2 = "";
 
             while(!ch1.isEmpty()){
-                int pos = GeneticAlgorithmConfig.nextInt(ch1.size());
+                int pos = GeneticAlgorithmConfig.nextInt(ch1.size(), 0);
                 str1 += ch1.get(pos);
                 str2 += ch2.get(pos);
                 ch1.remove(pos);
@@ -288,7 +288,7 @@ enum MutationType{
     SingleBitInversion{
         @Override
         public Chromosome mutate(Chromosome c) {
-            int pos = GeneticAlgorithmConfig.nextInt(c.toString().length()-2)+1;
+            int pos = GeneticAlgorithmConfig.nextInt(c.toString().length()-2, 0)+1;
             String pre = c.toString().substring(0, pos);
             char bit;
             if(c.toString().charAt(pos) == '1')
@@ -343,7 +343,7 @@ enum GeneDataType{
 
         @Override
         public Integer randVal(Object max, Object min) {
-            return GeneticAlgorithmConfig.nextInt((Integer)max - (Integer)min) + (Integer)min;
+            return GeneticAlgorithmConfig.nextInt((Integer)min, (Integer)max);
         }
 
         @Override

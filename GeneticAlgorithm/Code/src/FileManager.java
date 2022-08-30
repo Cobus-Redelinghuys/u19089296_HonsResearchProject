@@ -28,6 +28,7 @@ public class FileManager {
         jsonObject.put("interpreterPath", "");
         jsonObject.put("interpreterCommand", "java -jar ");
         jsonObject.put("tournamentSize", 5);
+        jsonObject.put("graphs", false);
 
         try(FileWriter file = new FileWriter("GeneticAlgorithmConfig.json")){
             String jsonString = jsonObject.toJSONString();
@@ -97,6 +98,7 @@ class GeneticAlgorithmConfig{
     public static final int tournamentSize;
     public static final String runName;
     public static final String runDir;
+    public static final boolean graphs;
 
     static{
         JSONParser jsonParser = new JSONParser();
@@ -237,6 +239,15 @@ class GeneticAlgorithmConfig{
             tournamentSize = ((Long)res).intValue();
         }
 
+        try{
+            res = jsonObject.get("graphs");
+        } catch(Exception e){
+            e.printStackTrace();
+            res = false;
+        } finally{
+            graphs = (Boolean)res;
+        }
+
         LocalDateTime now = LocalDateTime.now();
         String nowStr = now.getYear() + "_" + now.getMonth() + "_" + now.getDayOfMonth() + "_" + now.getHour() + "_" + now.getMinute() + "_" + now.getSecond();
         runName = "GARun_"+seed+"_"+nowStr;
@@ -296,8 +307,8 @@ class GeneticAlgorithmConfig{
         }
     }
 
-    public static Integer nextInt(Integer bound){
-        return random.nextInt(bound);
+    public static Integer nextInt(Integer max, Integer min){
+        return random.nextInt(Math.abs(max-min))-min;
     }
 
     public static Boolean nextBoolean(){
